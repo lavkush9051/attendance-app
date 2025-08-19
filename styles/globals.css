@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -75,8 +75,6 @@
 }
 
 @theme inline {
-  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
-
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -121,86 +119,5 @@
   }
   body {
     @apply bg-background text-foreground;
-  }
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Smooth transitions */
-* {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Focus styles for accessibility */
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 2px;
-}
-
-/* Animation for modals */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.modal-enter {
-  animation: fadeIn 0.2s ease-out;
-}
-
-/* PWA specific styles */
-@media (display-mode: standalone) {
-  body {
-    user-select: none;
-    -webkit-user-select: none;
-  }
-
-  /* Hide scrollbars in standalone mode */
-  ::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .card {
-    border-width: 2px;
-  }
-
-  button {
-    border-width: 2px;
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }
