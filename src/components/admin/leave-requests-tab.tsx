@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { authApi, leaveApi } from "@/lib/api"
 import { LeaveDetailModal } from "../leave-detail-modal"
+import { AdminLeaveReqDetailModal } from "../admin-leave-req-detail-modal"
 
 
 interface LeaveRequest {
@@ -35,7 +36,7 @@ export function LeaveRequestsTab() {
   const [isLoading, setIsLoading] = useState(true)
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set())
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; message: string } | null>(null)
-  const [selectedLeave, setSelectedLeave] = useState<LeaveRequest | null>(null)  
+  const [selectedLeave, setSelectedLeave] = useState<LeaveRequest | null>(null)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
 
   const emp = authApi.getUser()
@@ -274,6 +275,10 @@ export function LeaveRequestsTab() {
     }
   }
 
+  const handleViewDetails = (leave: LeaveRequest) => {
+    setSelectedLeave(leave)
+    setIsDetailModalOpen(true)
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -461,9 +466,12 @@ export function LeaveRequestsTab() {
                                       <X className="h-3 w-3" />
                                     )}
                                   </Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleViewDetails(request)}>
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
                                 </>
                               ) : (
-                                <Button size="sm" variant="outline">
+                                <Button size="sm" variant="ghost" onClick={() => handleViewDetails(request)}>
                                   <Eye className="h-3 w-3" />
                                 </Button>
                               )}
@@ -542,9 +550,12 @@ export function LeaveRequestsTab() {
                             )}
                             Reject
                           </Button>
+                          <Button size="sm" variant="outline" className="w-full bg-transparent" onClick={() => handleViewDetails(request)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                          </Button>
                         </div>
                       ) : (
-                        <Button size="sm" variant="outline" className="w-full bg-transparent">
+                        <Button size="sm" variant="outline" className="w-full bg-transparent" onClick={() => handleViewDetails(request)}>
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </Button>
@@ -558,7 +569,32 @@ export function LeaveRequestsTab() {
         </CardContent>
       </Card>
       {/* Leave Detail Modal */}
-      {/* <LeaveDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} leave={selectedLeave} /> */}
+      <AdminLeaveReqDetailModal
+        onCancelLeave = {() => handleAction(selectedLeave?.id || "", "reject")}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        leave={
+          selectedLeave
+            ? {
+              // Map LeaveRequest to LeaveRecord
+              id: selectedLeave.id,
+              empId: selectedLeave.employeeId,
+              type: selectedLeave.leaveType,
+              startDate: selectedLeave.fromDate,
+              endDate: selectedLeave.toDate,
+              days: selectedLeave.days,
+              reason: selectedLeave.reason,
+              status:
+                selectedLeave.status === "l1 approved"
+                  ? "approved"
+                  : selectedLeave.status,
+              appliedDate: selectedLeave.appliedDate,
+              attachment: selectedLeave.attachment,
+              empName: selectedLeave.employeeName, // Assuming empName is same as employeeName
+            }
+            : null
+        }
+      />
     </div>
   )
 }

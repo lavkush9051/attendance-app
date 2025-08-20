@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Alert, AlertDescription } from "../ui/alert"
 import { authApi, attendanceApi } from "@/lib/api"
+import { AdminAttendanceReqDetailModal } from "../admin-attendance-req-detail-modal"
 
 interface AttendanceRequest {
   id: string
@@ -20,8 +21,8 @@ interface AttendanceRequest {
   requestedClockIn?: string
   requestedClockOut?: string
   reason: string
-  type: string
-  status: "pending" | "approved" | "rejected"
+  type: "missed-clock-in" | "missed-clock-out" | "wrong-time" | "system-error" | "other"
+  status: "pending" | "approved" | "rejected" | "l1 approved"
   appliedDate: string
 }
 
@@ -34,7 +35,8 @@ export function AttendanceRequestsTab() {
   const [isLoading, setIsLoading] = useState(true)
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set())
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; message: string } | null>(null)
-
+  const [selectedAttend, setSelectedAttend] = useState<AttendanceRequest | null>(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   // Mock data - in real app, this would come from API
 
   // const mockAttendanceRequests: AttendanceRequest[] = [
@@ -272,6 +274,11 @@ export function AttendanceRequestsTab() {
     }
   }
 
+  const handleViewDetails = (request: AttendanceRequest) => {
+    setSelectedAttend(request)
+    setIsDetailModalOpen(true)
+  }
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -473,9 +480,12 @@ export function AttendanceRequestsTab() {
                                       <X className="h-3 w-3" />
                                     )}
                                   </Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleViewDetails(request)}>
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
                                 </>
                               ) : (
-                                <Button size="sm" variant="outline">
+                                <Button size="sm" variant="ghost" onClick={() => handleViewDetails(request)}>
                                   <Eye className="h-3 w-3" />
                                 </Button>
                               )}
@@ -560,9 +570,13 @@ export function AttendanceRequestsTab() {
                             )}
                             Reject
                           </Button>
+                          <Button size="sm" variant="outline" className="w-full bg-transparent" onClick={() => handleViewDetails(request)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </Button>
                         </div>
                       ) : (
-                        <Button size="sm" variant="outline" className="w-full bg-transparent">
+                        <Button size="sm" variant="outline" className="w-full bg-transparent" onClick={() => handleViewDetails(request)}>
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </Button>
@@ -575,6 +589,31 @@ export function AttendanceRequestsTab() {
           )}
         </CardContent>
       </Card>
+      <AdminAttendanceReqDetailModal
+        onCancelAttendance={() => handleAction(selectedAttend?.id || "", "reject")}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        record={selectedAttend
+          ? {
+            id: selectedAttend.id,
+            empId: selectedAttend.employeeId,
+            empName: selectedAttend.employeeName,
+            date: selectedAttend.date,
+            originalClockIn: selectedAttend.originalClockIn,
+            originalClockOut: selectedAttend.originalClockOut,
+            requestedClockIn: selectedAttend.requestedClockIn,
+            requestedClockOut: selectedAttend.requestedClockOut,
+            reason: selectedAttend.reason,
+            type: selectedAttend.type,
+            status:
+                selectedAttend.status === "l1 approved"
+                  ? "approved"
+                  : selectedAttend.status,
+            appliedDate: selectedAttend.appliedDate
+          }
+          : null
+        }
+      />
     </div>
   )
 }
