@@ -440,7 +440,7 @@ export function LeaveRequestsTab() {
                           </td>
                           <td className="py-4 px-4">
                             <div className="flex space-x-2">
-                              {(request.status === "pending" || request.status === "l1 approved") ? (
+                              {(request.status.toLowerCase() === "pending" || request.status.toLowerCase() === "l1 approved") ? (
                                 <>
                                   <Button
                                     size="sm"

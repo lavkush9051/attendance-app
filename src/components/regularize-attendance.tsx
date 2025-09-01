@@ -129,11 +129,11 @@ export function RegularizeAttendance() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "approved":
+      case "Approved":
         return "bg-green-100 text-green-800 border-green-200"
-      case "pending":
+      case "Pending":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      case "rejected":
+      case "Rejected":
         return "bg-red-100 text-red-800 border-red-200"
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
@@ -159,11 +159,11 @@ export function RegularizeAttendance() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "approved":
+      case "Approved":
         return <CheckCircle className="h-4 w-4 text-green-500" />
-      case "pending":
+      case "Pending":
         return <Clock className="h-4 w-4 text-yellow-500" />
-      case "rejected":
+      case "Rejected":
         return <XCircle className="h-4 w-4 text-red-500" />
       default:
         return <Clock className="h-4 w-4 text-gray-500" />
@@ -197,9 +197,9 @@ export function RegularizeAttendance() {
 
   // Summary statistics
   const totalRequests = regularizeRecords.length
-  const approvedRequests = regularizeRecords.filter((r) => r.status === "approved").length
-  const pendingRequests = regularizeRecords.filter((r) => r.status === "pending").length
-  const rejectedRequests = regularizeRecords.filter((r) => r.status === "rejected").length
+  const approvedRequests = regularizeRecords.filter((r) => r.status.toLowerCase() === "approved").length
+  const pendingRequests = regularizeRecords.filter((r) => r.status.toLowerCase() === "pending").length
+  const rejectedRequests = regularizeRecords.filter((r) => r.status.toLowerCase() === "rejected").length
 
   return (
     <div className="space-y-6">

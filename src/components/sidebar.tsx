@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Building2, Calendar, Clock, FileText, Home, Settings, LogOut } from "lucide-react"
+import { Building2, Calendar, Clock, FileText, Home, Settings, LogOut, Camera  } from "lucide-react"
 import { authApi } from "@/lib/api"
 
 interface SidebarProps {
@@ -28,6 +28,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
     { id: "regularize", label: "Regularize Attendance", icon: Clock },
     { id: "leave-history", label: "Leave History", icon: FileText },
     { id: "settings", label: "Settings", icon: Settings },
+    { id: "register-face-modal", label: "Register Face", icon: Camera },
   ]
 
   // 🔹 Only add Admin Panel if user is Manager

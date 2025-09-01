@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Sidebar } from "../components/sidebar"
 import { TopBar } from "../components/top-bar"
 import { Dashboard } from "../components/dashboard"
@@ -14,6 +14,7 @@ import { ApplyLeave } from "../components/apply-leave"
 import { RegularizeAttendance } from "../components/regularize-attendance"
 import { Settings } from "../components/settings"
 import { AdminPanel } from "../components/admin-panel"
+import { RegisterFaceModal } from "../components/register-face-modal"
 
 export default function Home() {
   const [currentView, setCurrentView] = useState("dashboard")
@@ -22,11 +23,19 @@ export default function Home() {
   const [isRegularizeOpen, setIsRegularizeOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [isAttendanceDetailOpen, setIsAttendanceDetailOpen] = useState(false)
+  const [showRegisterFace, setShowRegisterFace] = useState(false)
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date)
     setIsAttendanceDetailOpen(true)
   }
+
+    useEffect(() => {
+    if (currentView === "register-face-modal") {
+      setShowRegisterFace(true)
+      setCurrentView("dashboard") // or keep whatever view you want underneath the modal
+    }
+  }, [currentView])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -39,8 +48,16 @@ export default function Home() {
       />
 
       {/* Desktop Sidebar */}
-      <Sidebar currentView={currentView} onViewChange={setCurrentView} />
-
+      <Sidebar
+        currentView={currentView}
+        onViewChange={(view) => {
+          if (view === "register-face-modal") {
+            setShowRegisterFace(true)            // open via sidebar click
+          } else {
+            setCurrentView(view)
+          }
+        }}
+      />
       {/* Main Content */}
       <div className="lg:ml-64">
         <TopBar onMenuClick={() => setIsMobileMenuOpen(true)} />
@@ -78,6 +95,13 @@ export default function Home() {
           setIsRegularizeOpen(true)
         }}
       />
+      <RegisterFaceModal
+        isOpen={showRegisterFace}
+        onClose={() => setShowRegisterFace(false)}
+        onSuccess={() => {
+          // optional: toast, refresh user profile, etc.
+        }}
+      />      
     </div>
   )
 }

@@ -16,13 +16,13 @@ class ApiClient {
     // Create abort controller for timeout
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), this.timeout)
-
+    const isJsonBody = options.body && !(options.body instanceof FormData);
     try {
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
         headers: {
-          "Content-Type": "application/json",
+          ...(isJsonBody ? { "Content-Type": "application/json" } : {}),
           ...options.headers,
         },
       })

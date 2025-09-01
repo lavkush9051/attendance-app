@@ -31,12 +31,13 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
 
   const leaveTypes = [
-    "Annual Leave",
-    "Sick Leave",
-    "Personal Leave",
-    "Maternity Leave",
-    "Paternity Leave",
-    "Emergency Leave",
+    "Casual Leave",
+    "Earned Leave",
+    "Half Pay Leave",
+    "Medical Leave",
+    "Parental Leave",
+    "Special Leave",
+    "Child Care Leave",
   ]
 
   const validateForm = () => {

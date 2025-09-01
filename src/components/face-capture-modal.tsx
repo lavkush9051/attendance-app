@@ -20,6 +20,8 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
   const [error, setError] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [askPermission, setAskPermission] = useState(false)
+
 
   const startCamera = useCallback(async () => {
     try {
@@ -40,6 +42,7 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
       console.error("Camera error:", err)
     }
   }, [])
+
 
   const stopCamera = useCallback(() => {
     if (stream) {
@@ -106,23 +109,40 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
     setCapturedImage(null)
     setError(null)
     onClose()
+    setAskPermission(false);
   }, [stopCamera, onClose])
 
   // Start camera when modal opens
-//   useState(() => {
-//     if (isOpen && !stream && !capturedImage) {
-//       startCamera()
-//     }
-//   })
-useEffect(() => {
-  if (isOpen && !stream && !capturedImage) {
-    startCamera()
+  //   useState(() => {
+  //     if (isOpen && !stream && !capturedImage) {
+  //       startCamera()
+  //     }
+  //   })
+
+  
+  if (isOpen && !askPermission) {
+    const userConfirmed = window.confirm("This app wants to access your camera. Do you want to allow?");
+    if (userConfirmed) {
+      startCamera();
+      setAskPermission(true);
+    } else {
+      console.log("Camera access denied by user");
+      stopCamera();
+      setAskPermission(false);
+    }
+    
   }
-  // Stop camera when modal closes
-  return () => {
-    if (!isOpen) stopCamera()
-  }
-}, [isOpen, stream, capturedImage, startCamera, stopCamera])
+
+
+  useEffect(() => {
+    if (isOpen && !stream && !capturedImage && askPermission) {
+      startCamera()
+    }
+    // Stop camera when modal closes
+    return () => {
+      if (!isOpen) stopCamera()
+    }
+  }, [isOpen, stream, capturedImage, startCamera, stopCamera])
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

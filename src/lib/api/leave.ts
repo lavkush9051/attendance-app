@@ -45,6 +45,17 @@ export interface LeaveActionRequest {
   comments?: string
 }
 
+export interface LeaveBalance {
+  emp_id: number
+  casual_leave: number
+  earned_leave: number
+  half_pay_leave: number
+  medical_leave: number
+  special_leave: number
+  child_care_leave: number
+  parental_leave: number
+}
+
 // Leave API functions
 export const leaveApi = {
   /**
@@ -213,4 +224,21 @@ export const leaveApi = {
       throw error
     }
   },
+
+  async getLeaveBalance(empId: number | string) {
+  try {
+    // If your FastAPI route is /api/leave-balance, change the path accordingly.
+    const res = await apiClient.get<LeaveBalance>("/api/leave-balance", { emp_id: String(empId) })
+
+    // Normalize ApiResponse<T> → T
+    const data = Array.isArray(res)
+      ? (res[0] as any)
+      : (res && typeof res === "object" && "data" in res ? (res as any).data : res)
+    console.log("Leave balance data:", data)
+    return data as LeaveBalance
+  } catch (error) {
+    console.error("Failed to fetch leave balance:", error)
+    throw error
+  }
+}
 }

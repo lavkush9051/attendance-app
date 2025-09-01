@@ -144,13 +144,15 @@ export function LeaveHistory() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "approved":
+      case "Approved":
         return "bg-green-100 text-green-800 border-green-200"
-      case "pending":
+      case "Pending":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      case "rejected":
+      case "Rejected":
         return "bg-red-100 text-red-800 border-red-200"
-      case "cancelled":
+      case "Cancelled":
+        return "bg-gray-100 text-gray-800 border-gray-200"
+      case "L1 Approved":
         return "bg-gray-100 text-gray-800 border-gray-200"
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
@@ -159,13 +161,15 @@ export function LeaveHistory() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "approved":
+      case "Approved":
         return "✓"
-      case "pending":
+      case "L1 Approved":
+        return "✓"
+      case "Pending":
         return "⏳"
-      case "rejected":
+      case "Rejected":
         return "✗"
-      case "cancelled":
+      case "Cancelled":
         return "⊘"
       default:
         return "?"
@@ -207,9 +211,9 @@ export function LeaveHistory() {
 
   // Summary statistics
   const totalLeaves = leaveRecords.length
-  const approvedLeaves = leaveRecords.filter((l) => l.status === "approved").length
-  const pendingLeaves = leaveRecords.filter((l) => l.status === "pending").length
-  const totalDaysTaken = leaveRecords.filter((l) => l.status === "approved").reduce((sum, l) => sum + l.days, 0)
+  const approvedLeaves = leaveRecords.filter((l) => l.status.toLowerCase() === "approved").length
+  const pendingLeaves = leaveRecords.filter((l) => l.status.toLowerCase() === "pending").length
+  const totalDaysTaken = leaveRecords.filter((l) => l.status.toLowerCase() === "approved").reduce((sum, l) => sum + l.days, 0)
 
   return (
     <div className="space-y-6">
@@ -309,10 +313,10 @@ export function LeaveHistory() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="Approved">Approved</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Rejected">Rejected</SelectItem>
+                <SelectItem value="Cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
 

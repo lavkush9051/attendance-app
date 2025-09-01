@@ -282,11 +282,11 @@ export function AttendanceRequestsTab() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "approved":
+      case "Approved":
         return "bg-green-100 text-green-800 border-green-200"
-      case "pending":
+      case "Pending":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      case "rejected":
+      case "Rejected":
         return "bg-red-100 text-red-800 border-red-200"
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
@@ -454,7 +454,7 @@ export function AttendanceRequestsTab() {
                           </td>
                           <td className="py-4 px-4">
                             <div className="flex space-x-2">
-                              {request.status === "pending" ? (
+                              {(request.status.toLowerCase() === "pending" || request.status.toLowerCase() === "l1 approved") ? (
                                 <>
                                   <Button
                                     size="sm"
@@ -541,7 +541,7 @@ export function AttendanceRequestsTab() {
                         <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{request.reason}</p>
                       </div>
 
-                      {request.status === "pending" ? (
+                      {request.status.toLowerCase() === "pending" ? (
                         <div className="flex space-x-2">
                           <Button
                             size="sm"
