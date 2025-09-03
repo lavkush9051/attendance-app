@@ -81,7 +81,7 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
     try {
       // Get employee ID from localStorage or auth context
       const user = authApi.getUser();
-      const empId = user?.id || 10001; // Fallback to 0 if not found
+      const empId = user.emp_id; // Fallback to 0 if not found
 
       // Convert base64 to blob
       const response = await fetch(capturedImage)
