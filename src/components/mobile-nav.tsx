@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { X, Building2, Home, Calendar, Clock, FileText, Settings, LogOut } from "lucide-react"
+import { X, Building2, Home, Calendar, Clock, FileText, Settings, LogOut, Camera } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { authApi } from "@/lib/api"
 
@@ -34,6 +34,8 @@ export function MobileNav({ isOpen, onClose, currentView, onViewChange }: Mobile
     { id: "regularize", label: "Regularize Attendance", icon: Clock },
     { id: "leave-history", label: "Leave History", icon: FileText },
     { id: "settings", label: "Settings", icon: Settings },
+    { id: "register-face-modal", label: "Register Face", icon: Camera },
+
 
   ]
   // 🔹 Only add Admin Panel if user is Manager
