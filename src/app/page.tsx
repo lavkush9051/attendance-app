@@ -16,17 +16,26 @@ import { Settings } from "../components/settings"
 import { AdminPanel } from "../components/admin-panel"
 import { RegisterFaceModal } from "../components/register-face-modal"
 
+export type DayAttendance = {
+  status: "present" | "absent" | "leave" | "holiday"
+  clockIn?: string
+  clockOut?: string
+  shift?: string
+}
+
 export default function Home() {
   const [currentView, setCurrentView] = useState("dashboard")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isApplyLeaveOpen, setIsApplyLeaveOpen] = useState(false)
   const [isRegularizeOpen, setIsRegularizeOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedAttendance, setSelectedAttendance] = useState<DayAttendance | null>(null)
   const [isAttendanceDetailOpen, setIsAttendanceDetailOpen] = useState(false)
   const [showRegisterFace, setShowRegisterFace] = useState(false)
 
-  const handleDateClick = (date: Date) => {
-    setSelectedDate(date)
+  const handleDateClick = (payload: { date: Date; attendance: DayAttendance }) => {
+    setSelectedDate(payload.date)
+    setSelectedAttendance(payload.attendance)
     setIsAttendanceDetailOpen(true)
   }
 
@@ -90,6 +99,7 @@ export default function Home() {
         isOpen={isAttendanceDetailOpen}
         onClose={() => setIsAttendanceDetailOpen(false)}
         date={selectedDate}
+        attendance={selectedAttendance || undefined}
         onRegularize={() => {
           setIsAttendanceDetailOpen(false)
           setIsRegularizeOpen(true)

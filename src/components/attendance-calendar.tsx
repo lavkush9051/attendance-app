@@ -9,10 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 import { authApi } from "@/lib/api/auth"
 import { attendanceApi, AttendanceApiResponse } from "@/lib/api/attendance"
+import { DayAttendance } from "@/app/page"
 
 
 interface AttendanceCalendarProps {
-  onDateClick: (date: Date) => void
+  onDateClick: (payload: { date: Date; attendance: DayAttendance }) => void
 }
 
 export function AttendanceCalendar({ onDateClick }: AttendanceCalendarProps) {
@@ -25,7 +26,7 @@ export function AttendanceCalendar({ onDateClick }: AttendanceCalendarProps) {
   // })
   const [currentDate, setCurrentDate] = useState(new Date())
   ///////////**************** */
-  const [attendance, setAttendance] = useState<Record<number, any>>({})
+  const [attendance, setAttendance] = useState<Record<number, DayAttendance>>({})
   const [loading, setLoading] = useState(false)
 
   // Helper: yyyy-mm-dd
@@ -57,9 +58,9 @@ export function AttendanceCalendar({ onDateClick }: AttendanceCalendarProps) {
       .then((data) => {
         // Map attendance to day of month
         console.log("Attendance data:", data)
-        const byDay: Record<number, any> = {}
+        const byDay: Record<number, DayAttendance> = {}
         if (data && Array.isArray(data.attendance)) {
-          data.attendance.forEach((a) => {
+          data.attendance.forEach((a: any) => {
             const day = parseInt(a.date.split("-")[2], 10)
             byDay[day] = {
               status: a.clockIn === "-" ? "absent" : "present",
@@ -218,34 +219,56 @@ export function AttendanceCalendar({ onDateClick }: AttendanceCalendarProps) {
                 )
               }
 
-            const attendance = getAttendanceStatus(day)
+            const att = getAttendanceStatus(day)
             const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
 
-            return (
+return (
               <button
                 key={day}
-                onClick={() => onDateClick(date)}
-                className={`h-20 sm:h-24 p-2 border rounded-lg transition-colors ${getStatusColor(attendance.status)}`}
+                onClick={() => onDateClick({ date, attendance: att })}
+                className={`h-20 sm:h-24 p-2 border rounded-lg transition-colors ${getStatusColor(att.status)}`}
+                aria-label={`Open details for ${date.toDateString()}`}
               >
+                {/* Single button, two responsive bodies:
+                    - Mobile (<sm): minimal layout, icon on its own line (your example)
+                    - Desktop (>=sm): detailed layout with in/out/shift */}
                 <div className="flex flex-col h-full">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium">{day}</span>
-                    {getStatusIcon(attendance.status)}
+                  {/* MOBILE VIEW */}
+                  <div className="sm:hidden flex flex-col h-full">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium">{day}</span>
+                      {/* icon intentionally hidden on this row as per your example */}
+                    </div>
+
+                    <div className="flex items-center justify-between mb-1">
+                      {getStatusIcon(att.status)}
+                    </div>
+
+                    {att.status === "leave" && <div className="text-xs text-blue-600 mt-1">Leave</div>}
+                    {att.status === "holiday" && <div className="text-xs text-purple-600 mt-1">Holiday</div>}
+                    {att.status === "absent" && <div className="text-xs text-red-600 mt-1"></div>}
+                    {/* Note: we do NOT show In/Out on mobile per your example */}
                   </div>
 
-                  {attendance.status === "present" && (
-                    <div className="text-xs text-gray-600 space-y-1">
-                      <div>In: {attendance.clockIn}</div>
-                      <div>Out: {attendance.clockOut}</div>
-                      <div className="text-xs text-gray-500">{attendance.shift}</div>
+                  {/* DESKTOP/TABLET VIEW */}
+                  <div className="hidden sm:flex flex-col h-full">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium">{day}</span>
+                      {getStatusIcon(att.status)}
                     </div>
-                  )}
 
-                  {attendance.status === "leave" && <div className="text-xs text-blue-600 mt-1">Leave</div>}
+                    {att.status === "present" && (
+                      <div className="text-xs text-gray-600 space-y-1">
+                        <div>In: {att.clockIn}</div>
+                        <div>Out: {att.clockOut}</div>
+                        <div className="text-xs text-gray-500">{att.shift}</div>
+                      </div>
+                    )}
 
-                  {attendance.status === "holiday" && <div className="text-xs text-purple-600 mt-1">Holiday</div>}
-
-                  {attendance.status === "absent" && <div className="text-xs text-red-600 mt-1"></div>}
+                    {att.status === "leave" && <div className="text-xs text-blue-600 mt-1">Leave</div>}
+                    {att.status === "holiday" && <div className="text-xs text-purple-600 mt-1">Holiday</div>}
+                    {att.status === "absent" && <div className="text-xs text-red-600 mt-1"></div>}
+                  </div>
                 </div>
               </button>
             )

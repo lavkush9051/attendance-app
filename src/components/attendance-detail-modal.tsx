@@ -4,29 +4,33 @@ import { X, Clock, Calendar, CheckCircle, XCircle, Plane, Edit } from "lucide-re
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { DayAttendance } from "@/app/page"
 
 interface AttendanceDetailModalProps {
   isOpen: boolean
   onClose: () => void
   date: Date | null
   onRegularize: () => void
+  attendance?: DayAttendance
 }
 
-export function AttendanceDetailModal({ isOpen, onClose, date, onRegularize }: AttendanceDetailModalProps) {
+export function AttendanceDetailModal({ isOpen, onClose, date, onRegularize, attendance }: AttendanceDetailModalProps) {
   if (!isOpen || !date) return null
 
+  const data: DayAttendance = attendance ?? { status: "absent" }
+
   // Mock data - in real app, this would come from API based on the selected date
-  const attendanceData = {
-    status: "present" as const,
-    clockIn: "9:15 AM",
-    clockOut: "6:30 PM",
-    shift: "Day Shift (9:00 AM - 6:00 PM)",
-    workingHours: "9h 15m",
-    breakTime: "1h 00m",
-    overtime: "0h 15m",
-    location: "Office - Floor 3",
-    notes: "Arrived 15 minutes late due to traffic",
-  }
+  // const attendanceData = {
+  //   status: "present" as const,
+  //   clockIn: "9:15 AM",
+  //   clockOut: "6:30 PM",
+  //   shift: "Day Shift (9:00 AM - 6:00 PM)",
+  //   workingHours: "9h 15m",
+  //   breakTime: "1h 00m",
+  //   overtime: "0h 15m",
+  //   location: "Office - Floor 3",
+  //   notes: "Arrived 15 minutes late due to traffic",
+  // }
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -63,7 +67,7 @@ export function AttendanceDetailModal({ isOpen, onClose, date, onRegularize }: A
     }
   }
 
-  const statusInfo = getStatusInfo(attendanceData.status)
+  const statusInfo = getStatusInfo(data.status)
   const formattedDate = date.toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
@@ -94,7 +98,7 @@ export function AttendanceDetailModal({ isOpen, onClose, date, onRegularize }: A
             <Badge className={statusInfo.color}>{statusInfo.label}</Badge>
           </div>
 
-          {attendanceData.status === "present" && (
+          {data.status === "present" && (
             <>
               {/* Time Details */}
               <div className="space-y-3">
@@ -103,7 +107,7 @@ export function AttendanceDetailModal({ isOpen, onClose, date, onRegularize }: A
                     <Clock className="h-4 w-4 text-gray-500" />
                     <span className="text-sm">Clock In</span>
                   </div>
-                  <span className="font-medium">{attendanceData.clockIn}</span>
+                  <span className="font-medium">{data.clockIn?? "-"}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -111,28 +115,28 @@ export function AttendanceDetailModal({ isOpen, onClose, date, onRegularize }: A
                     <Clock className="h-4 w-4 text-gray-500" />
                     <span className="text-sm">Clock Out</span>
                   </div>
-                  <span className="font-medium">{attendanceData.clockOut}</span>
+                  <span className="font-medium">{data.clockOut ?? "-"}</span>
                 </div>
 
-                <div className="flex items-center justify-between">
+                {/* <div className="flex items-center justify-between">
                   <span className="text-sm">Working Hours</span>
                   <span className="font-medium">{attendanceData.workingHours}</span>
-                </div>
+                </div> */}
 
-                <div className="flex items-center justify-between">
+                {/* <div className="flex items-center justify-between">
                   <span className="text-sm">Break Time</span>
                   <span className="font-medium">{attendanceData.breakTime}</span>
-                </div>
+                </div> */}
 
-                <div className="flex items-center justify-between">
+                {/* <div className="flex items-center justify-between">
                   <span className="text-sm">Overtime</span>
                   <span className="font-medium text-orange-600">{attendanceData.overtime}</span>
-                </div>
+                </div> */}
               </div>
 
               <hr className="my-4" />
 
-              {/* Additional Info */}
+              {/* Additional Info
               <div className="space-y-3">
                 <div>
                   <span className="text-sm text-gray-600">Shift</span>
@@ -152,9 +156,21 @@ export function AttendanceDetailModal({ isOpen, onClose, date, onRegularize }: A
                     </p>
                   </div>
                 )}
-              </div>
+              </div> */}
+            {data.shift && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Shift</span>
+                    <span className="font-medium">{data.shift}</span>
+                  </div>
+                )}
             </>
           )}
+
+          {data.status === "leave" && <p className="text-sm text-blue-700">Marked on leave.</p>}
+          {data.status === "holiday" && <p className="text-sm text-purple-700">Holiday.</p>}
+          {data.status === "absent" && <p className="text-sm text-red-700">No clock-in/out recorded.</p>}
+
+
 
           {/* Action Buttons */}
           <div className="flex space-x-3 pt-4">
