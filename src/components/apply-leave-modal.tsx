@@ -25,6 +25,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
     endDate: "",
     reason: "",
     attachment: null as File | null,
+    applied_date: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -82,6 +83,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
         reason: formData.reason,
         leave_req_emp_id: '',
         attachment: formData.attachment,
+        applied_date: new Date().toISOString().split('T')[0],
       })
       // No need to wait if not required, just proceed
       setSubmitStatus("success")
@@ -93,6 +95,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
           endDate: "",
           reason: "",
           attachment: null,
+          applied_date: "",
         })
         setSubmitStatus("idle")
       }, 2000)

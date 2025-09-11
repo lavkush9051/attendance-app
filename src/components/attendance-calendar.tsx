@@ -66,7 +66,7 @@ export function AttendanceCalendar({ onDateClick }: AttendanceCalendarProps) {
               status: a.clockIn === "-" ? "absent" : "present",
               clockIn: a.clockIn,
               clockOut: a.clockOut,
-              shift: data.shift || "Day",
+              shift: a.shift || "Day",
             }
           })
         }
@@ -261,7 +261,7 @@ return (
                       <div className="text-xs text-gray-600 space-y-1">
                         <div>In: {att.clockIn}</div>
                         <div>Out: {att.clockOut}</div>
-                        <div className="text-xs text-gray-500">{att.shift}</div>
+                        <div className="text-xs text-gray-500">Shift {att.shift}</div>
                       </div>
                     )}
 

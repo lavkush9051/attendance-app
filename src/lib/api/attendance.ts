@@ -8,6 +8,7 @@ export interface AttendanceDay {
   date: string
   clockIn: string
   clockOut: string
+  shift: string
 }
 
 export interface AttendanceApiResponse {
@@ -190,7 +191,7 @@ export const attendanceApi = {
   },
 
 
-  async clockInOut(empId: string, faceImage: Blob) {
+  async clockInOut(empId: string, faceImage: Blob, shift: string) {
     try {
       // (Optional) Location – keep for future (not used by backend right now)
       let latitude: string | undefined
@@ -214,6 +215,7 @@ export const attendanceApi = {
       const formData = new FormData()
       formData.append("file", faceImage, "face-capture.jpg")
       formData.append("face_user_emp_id", empId)
+      formData.append("shift", shift)
       // The backend doesn’t accept timestamp/lat/long yet; keep them commented for later use:
       // formData.append("timestamp", new Date().toISOString())
       // if (latitude && longitude) { formData.append("latitude", latitude); formData.append("longitude", longitude) }

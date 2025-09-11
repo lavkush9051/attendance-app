@@ -36,6 +36,7 @@ export interface CreateLeaveRequest {
   end_date: string
   reason: string
   attachment: File
+  applied_date: string
 }
 
 export interface LeaveActionRequest {
@@ -46,14 +47,21 @@ export interface LeaveActionRequest {
 }
 
 export interface LeaveBalance {
-  emp_id: number
   casual_leave: number
+  casual_leave_held: number
+  casual_leave_committed: number
+
   earned_leave: number
+  earned_leave_held: number
+  earned_leave_committed: number
+
   half_pay_leave: number
+  half_pay_leave_held: number
+  half_pay_leave_committed: number
+
   medical_leave: number
-  special_leave: number
-  child_care_leave: number
-  parental_leave: number
+  medical_leave_held: number
+  medical_leave_committed: number
 }
 
 // Leave API functions
@@ -181,6 +189,7 @@ export const leaveApi = {
       formData.append("leave_from_dt", data.start_date)
       formData.append("leave_to_dt", data.end_date)
       formData.append("leave_reason", data.reason)
+      formData.append("leave_applied_dt", data.applied_date)
       // If there's an attachment, use FormData
       if (data.attachment) {
 
@@ -225,20 +234,88 @@ export const leaveApi = {
     }
   },
 
-  async getLeaveBalance(empId: number | string) {
-  try {
-    // If your FastAPI route is /api/leave-balance, change the path accordingly.
-    const res = await apiClient.get<LeaveBalance>("/api/leave-balance", { emp_id: String(empId) })
+//   async getLeaveBalance(empId: number | string) {
+//   try {
+//     // If your FastAPI route is /api/leave-balance, change the path accordingly.
+//     const res = await apiClient.get<LeaveBalance>("/api/leave-balance", { emp_id: String(empId) })
 
-    // Normalize ApiResponse<T> → T
-    const data = Array.isArray(res)
-      ? (res[0] as any)
-      : (res && typeof res === "object" && "data" in res ? (res as any).data : res)
-    console.log("Leave balance data:", data)
-    return data as LeaveBalance
+//     // Normalize ApiResponse<T> → T
+//     const data = Array.isArray(res)
+//       ? (res[0] as any)
+//       : (res && typeof res === "object" && "data" in res ? (res as any).data : res)
+//     console.log("Leave balance data:", data)
+//     return data as LeaveBalance
+//   } catch (error) {
+//     console.error("Failed to fetch leave balance:", error)
+//     throw error
+//   }
+// } ,
+
+
+async getLeaveBalance(empId: number | string): Promise<LeaveBalance> {
+  try {
+    // Backend snapshot endpoint
+    const res = await apiClient.get("/api/leave-balance/snapshot", { emp_id: String(empId) })
+    const payload: any = (res && typeof res === "object" && "data" in res) ? (res as any).data : res
+    // payload = { emp_id, types: [{type, accrued, held, committed, available}], totals: {...} }
+
+    const init: LeaveBalance = {
+      casual_leave: 0, casual_leave_held: 0, casual_leave_committed: 0,
+      earned_leave: 0, earned_leave_held: 0, earned_leave_committed: 0,
+      half_pay_leave: 0, half_pay_leave_held: 0, half_pay_leave_committed: 0,
+      medical_leave: 0, medical_leave_held: 0, medical_leave_committed: 0,
+    }
+
+    if (!payload?.types || !Array.isArray(payload.types)) return init
+
+    for (const row of payload.types) {
+      const key = normalizeKey(row.type)
+      if (!key) continue
+      ;(init as any)[key] = Number(row.accrued ?? 0)
+      ;(init as any)[`${key}_held`] = Number(row.held ?? 0)
+      ;(init as any)[`${key}_committed`] = Number(row.committed ?? 0)
+    }
+
+    return init
   } catch (error) {
     console.error("Failed to fetch leave balance:", error)
     throw error
   }
 }
+
+
+
+
+}
+
+
+
+// lib/api/leave.ts
+
+const TYPE_TO_KEY: Record<string, keyof LeaveBalance | string> = {
+  // be generous with labels coming from backend
+  "Casual Leave": "casual_leave",
+  "Casual": "casual_leave",
+  "CL": "casual_leave",
+
+  "Earned Leave": "earned_leave",
+  "Earned": "earned_leave",
+  "EL": "earned_leave",
+
+  "Half Pay Leave": "half_pay_leave",
+  "Half Pay": "half_pay_leave",
+  "HPL": "half_pay_leave",
+
+  "Medical Leave": "medical_leave",
+  "Medical": "medical_leave",
+  "ML": "medical_leave",
+}
+
+function normalizeKey(typeLabel: string): string | null {
+  if (TYPE_TO_KEY[typeLabel]) return TYPE_TO_KEY[typeLabel] as string
+  // fallback: lowercase + underscores
+  const k = typeLabel.trim().toLowerCase().replace(/\s+/g, "_")
+  // only allow the 4 keys we render
+  if (["casual_leave", "earned_leave", "half_pay_leave", "medical_leave"].includes(k)) return k
+  return null
 }

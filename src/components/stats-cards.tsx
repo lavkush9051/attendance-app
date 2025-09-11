@@ -83,6 +83,10 @@ export function StatsCards() {
   const updatedInitialShifts = getUpdatedInitialShifts(today.toISOString().slice(0,10))
   const { shift, shiftTime } = getShiftForWeekoff(emp?.emp_weekoff || emp?.emp_week_off || "General", updatedInitialShifts, today)
   console.log("Today Shift:", shift)
+  localStorage.setItem("user_shift", JSON.stringify({
+    "shift": shift.split(' ')[0],  // Just first letter
+    "shiftTime": shiftTime
+  }))
 
   const [statsData, setStatsData] = useState({
     present: "-",

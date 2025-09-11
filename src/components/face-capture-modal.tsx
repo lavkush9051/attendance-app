@@ -22,6 +22,8 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [askPermission, setAskPermission] = useState(false)
 
+  const shift = localStorage.getItem("user_shift") ? JSON.parse(localStorage.getItem("user_shift") || '{}').shift : 'GEN'; // Default to 'D' if not found
+  console.log("Using shift:", shift);
 
   const startCamera = useCallback(async () => {
     try {
@@ -87,7 +89,7 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
       const response = await fetch(capturedImage)
       const blob = await response.blob()
 
-      const result = await attendanceApi.clockInOut(empId, blob)
+      const result = await attendanceApi.clockInOut(empId, blob, shift)
 
       if (result.success) {
         alert(`Successfully ${result.action}! Time: ${result.timestamp}`)
