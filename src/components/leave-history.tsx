@@ -25,6 +25,7 @@ interface LeaveRecord {
   approvedDate?: string
   rejectionReason?: string
   attachment?: string
+  remarks?: string
 }
 
 export function LeaveHistory() {
@@ -60,7 +61,9 @@ export function LeaveHistory() {
         approvedDate: item.approved_date,
         rejectionReason: item.rejection_reason,
         attachment: item.attachment ? item.attachment.name : undefined,
+        remarks: item.remarks,
       }))
+      records.sort((a, b) => new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime());
       console.log("Leave requests:", records)
       setLeaveRecords(records)
     }).catch((error) => {
@@ -187,6 +190,8 @@ export function LeaveHistory() {
 
     return matchesSearch && matchesStatus && matchesType
   })
+
+  .sort((a, b) => new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime());
 
   const handleViewDetails = (leave: LeaveRecord) => {
     setSelectedLeave(leave)

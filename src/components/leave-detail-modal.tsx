@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Textarea } from "./ui/textarea"
+import { authApi, leaveApi } from "@/lib/api"
+import { useState } from "react"
 
 interface LeaveRecord {
   id: string
@@ -19,16 +22,78 @@ interface LeaveRecord {
   approvedDate?: string
   rejectionReason?: string
   attachment?: string
+  remarks?: string
 }
 
 interface LeaveDetailModalProps {
   isOpen: boolean
   onClose: () => void
   leave: LeaveRecord | null
+  onCancelled?: () => void
 }
 
-export function LeaveDetailModal({ isOpen, onClose, leave }: LeaveDetailModalProps) {
+export function LeaveDetailModal({ isOpen, onClose, leave, onCancelled }: LeaveDetailModalProps) {
+
+  const [isCancelling, setIsCancelling] = useState(false);
+
   if (!isOpen || !leave) return null
+
+  // // --- Cancel eligibility validation ---
+  const isCancellable = () => {
+    const now = new Date()
+    const leaveStart = new Date(leave.startDate)
+
+    // Deadline = today 11:59:59 PM
+    const deadline = new Date(now)
+    deadline.setHours(23, 59, 59, 999)
+
+    // condition: leave should start after today
+    // and cancellation must be before today's 11:59 PM
+    return leaveStart > now && now <= deadline
+  }
+
+  // --- Handle cancel click ---
+  const handleCancel = async () => {
+    if (!isCancellable()) {
+      alert(
+        "You can cancel any upcoming leave only until 11:59 PM of the current day."
+      )
+      return
+    }
+
+    try {
+      setIsCancelling(true)
+      const emp = authApi.getUser()
+
+      console.log("Current logged in employee:", emp)
+      console.log("emp_id picked:", emp.emp_id)
+
+      const payload = {
+        leave_req_id: Number(leave.id),
+        action: "cancel", // ✅ send only cancelled action
+        admin_id: Number(emp.emp_id),
+        remarks: "Cancelled by user",
+      } as any
+      console.log("Cancel leave payload:", payload)
+
+      const res = await leaveApi.actionLeaveRequest(payload)
+      console.log("API response for cancel:", res)
+
+      const ok = res && res.success !== false && res.data && (res.data as any).status === "success"
+      if (!ok) {
+        throw new Error((res && (res as any).message) || "Failed to cancel leave request")
+      }
+
+      alert("Leave request cancelled successfully!")
+
+      if (onCancelled) onCancelled()
+      onClose()
+    } catch (err: any) {
+      alert(err?.message || "Failed to cancel leave. Please try again.")
+    } finally {
+      setIsCancelling(false)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -244,9 +309,37 @@ export function LeaveDetailModal({ isOpen, onClose, leave }: LeaveDetailModalPro
               </div>
             </>
           )}
-
-          {/* Action Buttons */}
+          <div>
+            <h3 className="font-medium text-gray-900 mb-2">Remark (Optional, max 150 characters)</h3>
+            <Textarea
+              placeholder="Add a remark for approval/rejection..."
+              value={leave.remarks || ""}
+            // value={leave.remarks || remarks}
+            />
+          </div>
           <div className="flex space-x-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="flex-1 bg-transparent"
+            >
+              Close
+            </Button>
+
+            {leave.status !== "cancelled" && (
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={handleCancel}
+                disabled={isCancelling}
+              >
+                {isCancelling ? "Cancelling..." : "Revoke"}
+
+              </Button>
+            )}
+          </div>
+          {/* Action Buttons */}
+          {/* <div className="flex space-x-3 pt-4">
             <Button variant="outline" onClick={onClose} className="flex-1 bg-transparent">
               Close
             </Button>
@@ -255,7 +348,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave }: LeaveDetailModalPro
                 Cancel Application
               </Button>
             )}
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>

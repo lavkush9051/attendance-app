@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { authApi, leaveApi } from "@/lib/api"
 import { LeaveDetailModal } from "../leave-detail-modal"
 import { AdminLeaveReqDetailModal } from "../admin-leave-req-detail-modal"
+import { set } from "date-fns"
 
 
 interface LeaveRequest {
@@ -25,6 +26,7 @@ interface LeaveRequest {
   status: "pending" | "approved" | "rejected" | "l1 approved"
   appliedDate: string
   attachment?: string
+  remarks?: string
 }
 
 export function LeaveRequestsTab() {
@@ -64,6 +66,7 @@ export function LeaveRequestsTab() {
         status: item.status?.toLowerCase() ?? "pending",
         appliedDate: item.applied_date ?? "",
         attachment: item.attachment,
+        remarks: item.remarks ?? "",
       }))
       console.log("Fetched all leave requests:", records)
       setIsLoading(true)
@@ -77,89 +80,9 @@ export function LeaveRequestsTab() {
     }).catch(error => {
       console.error("Failed to fetch leave requests:", error)
       setLeaveRequests([])
+      setIsLoading(false)
     })
   }, [emp.emp_id])
-
-  // const mockLeaveRequests: LeaveRequest[] = [
-  //   {
-  //     id: "LR001",
-  //     employeeName: "Alice Johnson",
-  //     employeeId: "EMP001",
-  //     leaveType: "Annual Leave",
-  //     fromDate: "2024-03-15",
-  //     toDate: "2024-03-19",
-  //     days: 5,
-  //     reason: "Family vacation",
-  //     status: "pending",
-  //     appliedDate: "2024-03-01",
-  //     attachment: "flight-tickets.pdf",
-  //   },
-  //   {
-  //     id: "LR002",
-  //     employeeName: "Bob Smith",
-  //     employeeId: "EMP002",
-  //     leaveType: "Sick Leave",
-  //     fromDate: "2024-03-10",
-  //     toDate: "2024-03-12",
-  //     days: 3,
-  //     reason: "Flu symptoms",
-  //     status: "pending",
-  //     appliedDate: "2024-03-09",
-  //     attachment: "medical-certificate.pdf",
-  //   },
-  //   {
-  //     id: "LR003",
-  //     employeeName: "Carol Davis",
-  //     employeeId: "EMP003",
-  //     leaveType: "Personal Leave",
-  //     fromDate: "2024-03-20",
-  //     toDate: "2024-03-20",
-  //     days: 1,
-  //     reason: "Personal work",
-  //     status: "approved",
-  //     appliedDate: "2024-03-05",
-  //   },
-  //   {
-  //     id: "LR004",
-  //     employeeName: "David Wilson",
-  //     employeeId: "EMP004",
-  //     leaveType: "Emergency Leave",
-  //     fromDate: "2024-03-08",
-  //     toDate: "2024-03-09",
-  //     days: 2,
-  //     reason: "Family emergency",
-  //     status: "rejected",
-  //     appliedDate: "2024-03-07",
-  //   },
-  //   {
-  //     id: "LR005",
-  //     employeeName: "Eva Brown",
-  //     employeeId: "EMP005",
-  //     leaveType: "Maternity Leave",
-  //     fromDate: "2024-04-01",
-  //     toDate: "2024-07-01",
-  //     days: 90,
-  //     reason: "Maternity leave",
-  //     status: "pending",
-  //     appliedDate: "2024-02-15",
-  //     attachment: "medical-certificate.pdf",
-  //   },
-  // ]
-
-  //  Simulate API call to fetch leave requests
-  // useEffect(() => {
-  //   const fetchLeaveRequests = async () => {
-  //     setIsLoading(true)
-  //     // Simulate API delay
-  //     await new Promise((resolve) => setTimeout(resolve, 1000))
-  //     setLeaveRequests(mockLeaveRequests)
-  //     setIsLoading(false)
-  //   }
-
-  //   fetchLeaveRequests()
-  // }, [])
-
-  // Filter requests based on search and filters
 
   useEffect(() => {
     const filtered = leaveRequests.filter((request) => {
@@ -177,48 +100,8 @@ export function LeaveRequestsTab() {
     setFilteredRequests(filtered)
   }, [leaveRequests, searchTerm, statusFilter, typeFilter])
 
-  // const handleAction = async (requestId: string, action: "approve" | "reject") => {
-  //   setProcessingIds((prev) => new Set(prev).add(requestId))
-
-  //   try {
-  //     // Simulate API call
-  //     leaveApi.actionLeaveRequest(requestId, action).then(response => {
-  //       if (response.status !== 200) {
-  //         throw new Error("Failed to update leave request")
-  //       }
-  //     }) 
-  //     await new Promise((resolve) => setTimeout(resolve, 1500))
-
-  //     // Update the request status
-  //     setLeaveRequests((prev) =>
-  //       prev.map((request) =>
-  //         request.id === requestId ? { ...request, status: action === "approve" ? "approved" : "rejected" } : request,
-  //       ),
-  //     )
-
-  //     setActionMessage({
-  //       type: "success",
-  //       message: `Leave request ${action === "approve" ? "approved" : "rejected"} successfully!`,
-  //     })
-
-  //     // Clear message after 3 seconds
-  //     setTimeout(() => setActionMessage(null), 3000)
-  //   } catch (error) {
-  //     setActionMessage({
-  //       type: "error",
-  //       message: `Failed to ${action} leave request. Please try again.`,
-  //     })
-  //     setTimeout(() => setActionMessage(null), 3000)
-  //   } finally {
-  //     setProcessingIds((prev) => {
-  //       const newSet = new Set(prev)
-  //       newSet.delete(requestId)
-  //       return newSet
-  //     })
-  //   }
-  // }
-
-  const handleAction = async (requestId: string, action: "approve" | "reject") => {
+  // Handle approve/reject action
+  const handleAction = async (requestId: string, action: "approve" | "reject", remarks?: string) => {
     // prevent double-action on same row
     if (processingIds.has(requestId)) return
 
@@ -234,6 +117,7 @@ export function LeaveRequestsTab() {
         leave_req_id: Number(requestId),          // <-- must be number
         action,                                   // "approve" | "reject"
         admin_id: Number(emp.emp_id),             // acting admin (L1/L2)
+        remarks: remarks || "", //action === "reject" ? "Rejected by admin" : "Approved by admin", // optional
       }
 
       const res = await leaveApi.actionLeaveRequest(payload)
@@ -260,6 +144,7 @@ export function LeaveRequestsTab() {
         message: `Leave request ${action === "approve" ? "approved" : "rejected"} successfully!`,
       })
       setTimeout(() => setActionMessage(null), 3000)
+      setIsDetailModalOpen(false) // close modal if open
     } catch (err: any) {
       setActionMessage({
         type: "error",
@@ -288,13 +173,15 @@ export function LeaveRequestsTab() {
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
       case "rejected":
         return "bg-red-100 text-red-800 border-red-200"
+      case "l1 approved":
+        return "bg-blue-100 text-blue-800 border-blue-200"
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
     }
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString("en-US", { // need to check 
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -363,6 +250,7 @@ export function LeaveRequestsTab() {
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="l1 approved">L1 Approved</SelectItem>
               </SelectContent>
             </Select>
 
@@ -439,43 +327,10 @@ export function LeaveRequestsTab() {
                             </Badge>
                           </td>
                           <td className="py-4 px-4">
-                            <div className="flex space-x-2">
-                              {(request.status.toLowerCase() === "pending" || request.status.toLowerCase() === "l1 approved") ? (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleAction(request.id, "approve")}
-                                    disabled={processingIds.has(request.id)}
-                                    className="bg-green-600 hover:bg-green-700"
-                                  >
-                                    {processingIds.has(request.id) ? (
-                                      <RefreshCw className="h-3 w-3 animate-spin" />
-                                    ) : (
-                                      <Check className="h-3 w-3" />
-                                    )}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => handleAction(request.id, "reject")}
-                                    disabled={processingIds.has(request.id)}
-                                  >
-                                    {processingIds.has(request.id) ? (
-                                      <RefreshCw className="h-3 w-3 animate-spin" />
-                                    ) : (
-                                      <X className="h-3 w-3" />
-                                    )}
-                                  </Button>
-                                  <Button size="sm" variant="outline" onClick={() => handleViewDetails(request)}>
-                                    <Eye className="h-3 w-3" />
-                                  </Button>
-                                </>
-                              ) : (
-                                <Button size="sm" variant="ghost" onClick={() => handleViewDetails(request)}>
-                                  <Eye className="h-3 w-3" />
-                                </Button>
-                              )}
-                            </div>
+                            <Button size="sm" variant="outline" className="bg-transparent" onClick={() => handleViewDetails(request)}>
+                              <Eye className="h-3 w-3 mr-2" />
+                              View
+                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -521,7 +376,7 @@ export function LeaveRequestsTab() {
                         <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{request.reason}</p>
                       </div>
 
-                      {(request.status === "pending" || request.status === "l1 approved") ? (
+                      {/* {(request.status === "pending" || request.status === "l1 approved") ? (
                         <div className="flex space-x-2">
                           <Button
                             size="sm"
@@ -559,7 +414,11 @@ export function LeaveRequestsTab() {
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </Button>
-                      )}
+                      )} */}
+                      <Button size="sm" variant="outline" className="w-full bg-transparent" onClick={() => handleViewDetails(request)}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
@@ -569,7 +428,7 @@ export function LeaveRequestsTab() {
         </CardContent>
       </Card>
       {/* Leave Detail Modal */}
-      <AdminLeaveReqDetailModal
+      {/* <AdminLeaveReqDetailModal
         onCancelLeave = {() => handleAction(selectedLeave?.id || "", "reject")}
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
@@ -594,6 +453,35 @@ export function LeaveRequestsTab() {
             }
             : null
         }
+      /> */}
+      <AdminLeaveReqDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        leave={
+          selectedLeave
+            ? {
+              id: selectedLeave.id,
+              empId: selectedLeave.employeeId,
+              type: selectedLeave.leaveType,
+              startDate: selectedLeave.fromDate,
+              endDate: selectedLeave.toDate,
+              days: selectedLeave.days,
+              reason: selectedLeave.reason,
+              status: selectedLeave.status, // keep l1 approved as-is
+              appliedDate: selectedLeave.appliedDate,
+              attachment: selectedLeave.attachment,
+              empName: selectedLeave.employeeName,
+              remarks: selectedLeave.remarks || "",
+            }
+            : null
+        }
+        onApprove={(remarks?: string) =>
+          handleAction(selectedLeave?.id || "", "approve", remarks)
+        }
+        onReject={(remarks?: string) =>
+          handleAction(selectedLeave?.id || "", "reject", remarks)
+        }
+        onCancelLeave={() => setIsDetailModalOpen(false)} // ✅ cancel just closes modal
       />
     </div>
   )

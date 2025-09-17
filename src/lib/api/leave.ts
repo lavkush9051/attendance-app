@@ -35,7 +35,7 @@ export interface CreateLeaveRequest {
   start_date: string
   end_date: string
   reason: string
-  attachment: File
+  attachment?: File | null
   applied_date: string
 }
 
@@ -44,6 +44,7 @@ export interface LeaveActionRequest {
   action: "approve" | "reject"
   admin_id: number
   comments?: string
+  remarks?: string
 }
 
 export interface LeaveBalance {
@@ -140,6 +141,7 @@ export const leaveApi = {
       approved_date: item.approved_date ?? "",
       rejection_reason: item.rejection_reason ?? "",
       attachment: undefined,
+      remarks: item.remarks ?? "",
     }))
   } catch (error) {
     console.error(`Failed to fetch leave requests for employee ${empId}:`, error)
@@ -183,6 +185,7 @@ export const leaveApi = {
     try {
       const userData = typeof window !== "undefined" ? localStorage.getItem("user_data") : null
       const userId = userData ? JSON.parse(userData).emp_id : null
+
       const formData = new FormData()
       formData.append("emp_id", userId)
       formData.append("leave_type", data.leave_type)
@@ -193,15 +196,17 @@ export const leaveApi = {
       // If there's an attachment, use FormData
       if (data.attachment) {
 
-        //formData.append("attachment", data.attachment)
-        console.log(formData.get("emp_id"), formData.get("leave_type"), formData.get("leave_from_dt"), formData.get("leave_to_dt"), formData.get("leave_reason"));
-        return await apiClient.postFormData<LeaveRequest>("/api/leave-request", formData)
+        formData.append("files", data.attachment)
+        console.log("attachment is added ",formData.get("emp_id"), formData.get("leave_type"), formData.get("leave_from_dt"), formData.get("leave_to_dt"), formData.get("leave_reason"));
+        //return await apiClient.postFormData<LeaveRequest>("/api/leave-request", formData)
       } else {
         //// Regular JSON request
         //const { attachment, ...jsonData } = data
         //return await apiClient.post<LeaveRequest>("/api/leave-request", jsonData)
-        return await apiClient.postFormData<LeaveRequest>("/api/leave-request", formData)
+        console.log("No attachment ",formData.get("emp_id"), formData.get("leave_type"), formData.get("leave_from_dt"), formData.get("leave_to_dt"), formData.get("leave_reason"));
+        //return await apiClient.postFormData<LeaveRequest>("/api/leave-request", formData)
       }
+      return await apiClient.postFormData<LeaveRequest>("/api/leave-request", formData)
     } catch (error) {
       console.error("Failed to create leave request:", error)
       throw error
@@ -281,9 +286,60 @@ async getLeaveBalance(empId: number | string): Promise<LeaveBalance> {
     console.error("Failed to fetch leave balance:", error)
     throw error
   }
-}
+},
 
 
+// === LIST attachments for a leave request ===
+// async listAttachments(leaveReqId: string, actorEmpId?: number) {
+//   const params: Record<string, any> = {}
+//   if (actorEmpId) params.actor_emp_id = String(actorEmpId) // TEMP until real auth
+//   return await apiClient.get<any[]>(`/api/leave-request/${leaveReqId}/attachment`, params)
+// },
+
+// // === DOWNLOAD one attachment (by attachment id) ===
+//   async downloadAttachmentForRequest(leaveReqId: string | number, actorEmpId?: number) {
+//     const base = process.env.NEXT_PUBLIC_API_BASE_URL || "" // e.g. http://127.0.0.1:8000
+//     const qs = actorEmpId ? `?actor_emp_id=${actorEmpId}` : ""
+//     const url = `${base}/api/leave-request/${leaveReqId}${"/attachment"}${qs}`
+
+//     const resp = await fetch(url, { credentials: "include" })
+//     if (!resp.ok) throw new Error("Failed to download attachment")
+
+//     // Try to derive filename from Content-Disposition
+//     const cd = resp.headers.get("Content-Disposition") || ""
+//     const m = /filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i.exec(cd)
+//     const filename = m ? decodeURIComponent(m[1]) : `attachment_${leaveReqId}`
+
+//     const blob = await resp.blob()
+//     const a = document.createElement("a")
+//     a.href = URL.createObjectURL(blob)
+//     a.download = filename
+//     document.body.appendChild(a)
+//     a.click()
+//     a.remove()
+//     URL.revokeObjectURL(a.href)
+//  },
+
+    async getAttachmentMeta(leaveReqId: string | number, actorEmpId?: string | number) {
+    const params: any = {}
+    if (actorEmpId != null) params.actor_emp_id = String(actorEmpId)
+    const res = await apiClient.get(`/api/leave-request/${leaveReqId}/attachment/meta`, params)
+    console.log("Attachment meta response:", res)
+    const payload: any = (res && typeof res === "object" && "data" in res) ? (res as any).data : res
+    const items = Array.isArray(payload?.items) ? payload.items : []
+    // items: [{ id, original_name, mime_type, size_bytes, url }]
+    return items as Array<{ id: number; original_name: string; mime_type: string; size_bytes: number; url: string }>
+  },
+
+  toAbsoluteUrl(pathOrUrl: string) {
+    // If it’s already absolute, return as-is
+    if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl
+    // Prefer env, else fall back to browser origin
+    const base =
+      (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_BASE) ||
+      (typeof window !== "undefined" ? window.location.origin : "")
+    return `${base}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`
+  },
 
 
 }

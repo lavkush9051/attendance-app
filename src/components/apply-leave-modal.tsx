@@ -19,6 +19,7 @@ interface ApplyLeaveModalProps {
 }
 
 export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
+  
   const [formData, setFormData] = useState({
     leaveType: "",
     startDate: "",
@@ -56,11 +57,29 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
         newErrors.endDate = "End date must be after start date"
       }
     }
+    // 🚨 Backdated validation rule
+    if (formData.startDate) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0) // normalize
+      const start = new Date(formData.startDate)
+      if (start < today && formData.leaveType !== "Medical Leave") {
+        newErrors.startDate = "Backdated leave is only allowed for Medical Leave"
+      }
+    }
+
+    // Attachment is OPTIONAL. If present, validate.
+    if (formData.attachment) {
+      const f = formData.attachment
+      const maxBytes = 10 * 1024 * 1024  // 10MB
+      const allowed = ["application/pdf", "image/png", "image/jpeg", "image/webp"]
+      if (!allowed.includes(f.type)) newErrors.attachment = "Only PDF or image files are allowed"
+      if (f.size > maxBytes) newErrors.attachment = "File must be ≤ 10MB"
+    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
-// Handle form submission
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -71,18 +90,18 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
 
     try {
       // Simulate API call
-      if (!formData.attachment) {
-        setErrors((prev) => ({ ...prev, attachment: "Attachment is required" }))
-        setIsSubmitting(false)
-        return
-      }
+      // if (!formData.attachment) {
+      //   setErrors((prev) => ({ ...prev, attachment: "Attachment is required" }))
+      //   setIsSubmitting(false)
+      //   return
+      // }
       await leaveApi.createLeaveRequest({
         leave_type: formData.leaveType,
         start_date: formData.startDate,
         end_date: formData.endDate,
         reason: formData.reason,
         leave_req_emp_id: '',
-        attachment: formData.attachment,
+        attachment: formData.attachment ?? undefined, // optional
         applied_date: new Date().toISOString().split('T')[0],
       })
       // No need to wait if not required, just proceed
@@ -217,9 +236,10 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
                         id="attachment"
                         type="file"
                         className="sr-only"
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp"
                         onChange={handleFileChange}
                       />
+                      {errors.attachment && <p className="text-sm text-red-500 mt-1">{errors.attachment}</p>}
                     </label>
                     <p className="pl-1">or drag and drop</p>
                   </div>
