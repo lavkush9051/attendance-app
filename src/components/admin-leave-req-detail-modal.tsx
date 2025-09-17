@@ -36,20 +36,27 @@ interface LeaveDetailModalProps {
   onReject?: (remarks: string) => void
 }
 
+type AttItem = {
+  id: number
+  original_name: string
+  mime_type: string
+  size_bytes: number
+  url: string
+}
+
 export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave, onApprove, onReject }: LeaveDetailModalProps) {
   const [remarks, setRemarks] = useState("")
   useEffect(() => { setRemarks("") }, [isOpen])
 
-  if (!isOpen || !leave) return null
-  const todaydate = new Date().toISOString().split("T")[0]
-
-  type AttItem = { id: number; original_name: string; mime_type: string; size_bytes: number; url: string }
   const [attachments, setAttachments] = useState<AttItem[]>([])
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
-      if (!isOpen || !leave) return
+      if (!isOpen || !leave) {
+        if (mounted) setAttachments([])
+        return
+      }
       try {
         const me = authApi.getUser()
         // getAttachmentMeta returns an ARRAY already
@@ -62,6 +69,10 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
     load()
     return () => { mounted = false }
   }, [isOpen, leave?.id])  // use leave.id so it doesn't re-run unnecessarily
+
+  const todaydate = new Date().toISOString().split("T")[0]
+
+  if (!isOpen || !leave) return null
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -119,28 +130,28 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
     URL.revokeObjectURL(a.href)
   }
 
-// ✅ Action logic: Buttons visible until 11:59 PM before start date, unless rejected
+  // ✅ Action logic: Buttons visible until 11:59 PM before start date, unless rejected
   const canTakeAction = () => {
     const start = new Date(leave.startDate)
     const cutoff = new Date(start)
     cutoff.setDate(cutoff.getDate() - 1)
     cutoff.setHours(23, 59, 59, 999)
- 
+
     const now = new Date()
- 
+
     // hide if rejected OR cutoff time passed
     if (leave.status === "rejected") return false
     if (leave.status === "cancelled") return false
     return now <= cutoff
   }
- 
+
   const isActionable = canTakeAction()
   // IMPORTANT: Build only the *new* remark for this action (do NOT prepend existing trail)
   const buildNewRemark = (action: "Approved" | "Rejected") => {
     const actor = leave.status === "pending" ? "L1 Manager" : "L2 Manager"
     const trimmed = remarks.trim()
     return `${actor} (${action}) - ${trimmed}`
-  }  
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
@@ -296,7 +307,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
               </div>
             </div>
           )}
- 
+
           {/* Remark Input - always visible, optional, 150 chars */}
           <Separator />
           <div>
@@ -310,7 +321,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
             />
             <p className="text-xs text-gray-500 mt-1">{remarks.length}/150</p>
           </div>
- 
+
           {/* Action Buttons (approve/reject) if actionable, otherwise Close for final states */}
           {isActionable ? (
             <div className="flex space-x-3 pt-4">
@@ -326,7 +337,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
                 }}>
                 Approve
               </Button>
- 
+
               {/* <Button variant="destructive" className="flex-1"
                onClick={() =>onReject(buildNewRemark("Rejected"))}>
                 Reject
@@ -339,7 +350,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
                 }}>
                 Reject
               </Button>
- 
+
             </div>
           ) : (
             <div className="flex justify-end pt-4">
@@ -347,7 +358,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
                 Close
               </Button>
             </div>
-          )}          
+          )}
         </CardContent>
       </Card>
     </div>
