@@ -65,6 +65,17 @@ export interface LeaveBalance {
   medical_leave_committed: number
 }
 
+function absoluteApiBase(): string {
+  // support either env var
+  if (typeof process !== "undefined") {
+    if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL
+    if (process.env.NEXT_PUBLIC_API_BASE) return process.env.NEXT_PUBLIC_API_BASE
+  }
+  // SSR-safe fallback
+  return typeof window !== "undefined" ? window.location.origin : ""
+}
+
+
 // Leave API functions
 export const leaveApi = {
   /**
@@ -339,6 +350,28 @@ async getLeaveBalance(empId: number | string): Promise<LeaveBalance> {
       (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_BASE) ||
       (typeof window !== "undefined" ? window.location.origin : "")
     return `${base}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`
+  },
+
+    openAttachmentUrl(pathOrUrl: string) {
+    const base = absoluteApiBase()
+    const href = /^https?:\/\//i.test(pathOrUrl)
+      ? pathOrUrl
+      : `${base}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`
+
+    const a = document.createElement("a")
+    a.href = href
+    a.target = "_blank"
+    a.rel = "noopener"
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  },
+
+  /** Build the canonical download URL from ids (if you don't want to use the URL returned by /meta). */
+  buildAttachmentUrl(leaveReqId: string | number, actorEmpId?: string | number) {
+    const base = absoluteApiBase()
+    const qs = actorEmpId != null ? `?actor_emp_id=${actorEmpId}` : ""
+    return `${base}/api/leave-request/${leaveReqId}/attachment${qs}`
   },
 
 

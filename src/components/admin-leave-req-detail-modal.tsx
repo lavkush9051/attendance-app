@@ -102,34 +102,41 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
   const formatShortDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
 
+  // async function handleDownload(att: { id: number; url: string }) {
+  //   const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"
+  //   const cleaned = att.url.replace(/\/attachment\/\d+(\?|$)/, "/attachment$1")
+  //   const url = `${base}${cleaned}`
+
+  //   console.log("Downloading from URL:", url, "attr:", att )
+
+  //   // If you fixed CORS origins and need cookies:
+  //   // const resp = await fetch(url, { credentials: "include" })
+  //   // If you didn’t fix CORS and don’t need cookies:
+  //   const resp = await fetch(url, { credentials: "omit" })
+
+  //   if (!resp.ok) throw new Error("Failed to download attachment")
+
+  //   const cd = resp.headers.get("Content-Disposition") || ""
+  //   const m = /filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i.exec(cd)
+  //   const filename = m ? decodeURIComponent(m[1]) : "attachment"
+
+  //   const blob = await resp.blob()
+  //   const a = document.createElement("a")
+  //   a.href = URL.createObjectURL(blob)
+  //   a.download = filename
+  //   document.body.appendChild(a)
+  //   a.click()
+  //   a.remove()
+  //   URL.revokeObjectURL(a.href)
+  // }
+// admin-leave-req-detail-modal.tsx
   async function handleDownload(att: { id: number; url: string }) {
-    const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"
-    const cleaned = att.url.replace(/\/attachment\/\d+(\?|$)/, "/attachment$1")
-    const url = `${base}${cleaned}`
-
-    console.log("Downloading from URL:", url, "attr:", att )
-
-    // If you fixed CORS origins and need cookies:
-    // const resp = await fetch(url, { credentials: "include" })
-    // If you didn’t fix CORS and don’t need cookies:
-    const resp = await fetch(url, { credentials: "omit" })
-
-    if (!resp.ok) throw new Error("Failed to download attachment")
-
-    const cd = resp.headers.get("Content-Disposition") || ""
-    const m = /filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i.exec(cd)
-    const filename = m ? decodeURIComponent(m[1]) : "attachment"
-
-    const blob = await resp.blob()
-    const a = document.createElement("a")
-    a.href = URL.createObjectURL(blob)
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    URL.revokeObjectURL(a.href)
+    console.log("Downloading from URL:", att.url, "attr:", att)
+    // att.url already looks like: /api/leave-request/39/attachment?actor_emp_id=10001
+    leaveApi.openAttachmentUrl(att.url)
   }
 
+  
   // ✅ Action logic: Buttons visible until 11:59 PM before start date, unless rejected
   const canTakeAction = () => {
     const start = new Date(leave.startDate)
