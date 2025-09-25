@@ -26,6 +26,7 @@ interface RegularizeRecord {
   approvedBy?: string
   approvedDate?: string
   rejectionReason?: string
+  shift?: string
 }
 
 export function RegularizeAttendance() {
@@ -61,7 +62,8 @@ export function RegularizeAttendance() {
         appliedDate: item.applied_date ?? "",
         approvedBy: item.approved_by ?? "",
         approvedDate: item.approved_date ?? "",
-        rejectionReason: item.rejection_reason ?? ""
+        rejectionReason: item.rejection_reason ?? "",
+        shift: item.shift ?? ""
       }))
       console.log("Fetched regularization records:", records)
       setRegularizeRecords(records)
@@ -433,10 +435,10 @@ export function RegularizeAttendance() {
                         </div>
                       </div>
 
-                      <div className="mb-3">
+                      {/* <div className="mb-3">
                         <p className="text-sm text-gray-600 mb-1">Reason:</p>
                         <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{record.reason}</p>
-                      </div>
+                      </div> */}
 
                       <Button variant="outline" size="sm" onClick={() => handleViewDetails(record)} className="w-full">
                         <Eye className="h-4 w-4 mr-2" />

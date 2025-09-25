@@ -22,6 +22,7 @@ interface RegularizeRecord {
     approvedBy?: string
     approvedDate?: string
     rejectionReason?: string
+    shift?: string
 }
 
 interface RegularizeDetailModalProps {
@@ -144,19 +145,26 @@ export function AdminAttendanceReqDetailModal({ isOpen, onClose, record, onCance
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center space-x-3">
+                                    {/* <div className="flex items-center space-x-3">
                                         <AlertCircle className="h-4 w-4 text-gray-500" />
                                         <div>
                                             <p className="text-sm text-gray-600">Type</p>
                                             <p className="font-medium text-gray-900">{getTypeLabel(record.type)}</p>
                                         </div>
-                                    </div>
+                                    </div> */}
 
                                     <div className="flex items-center space-x-3">
                                         <Clock className="h-4 w-4 text-gray-500" />
                                         <div>
                                             <p className="text-sm text-gray-600">Applied On</p>
                                             <p className="font-medium text-gray-900">{formatShortDate(record.appliedDate)}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center space-x-3">
+                                        <Clock className="h-4 w-4 text-gray-500" />
+                                        <div>
+                                            <p className="text-sm text-gray-600">Shift</p>
+                                            <p className="font-medium text-gray-900">{record.shift??"-"}</p>
                                         </div>
                                     </div>
                                 </div>

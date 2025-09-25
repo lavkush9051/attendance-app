@@ -38,6 +38,7 @@ export interface AttendanceRequest {
   approved_by?: string
   approved_date?: string
   rejection_reason?: string
+  shift?: string
 
 }
 
@@ -128,6 +129,7 @@ export const attendanceApi = {
       // formData.append("type", data.type)
       formData.append("clock_in", data.requested_clock_in)
       formData.append("clock_out", data.requested_clock_out || "")
+      formData.append("shift", data.shift || "")
       console.log("Posting regularization request:", (formData.get("emp_id"), formData.get("date"), formData.get("reason"), formData.get("clock_in"), formData.get("clock_out")));
       const response = await apiClient.postFormData("/api/attendance-regularization", formData)
       console.log("Regularization request submitted:", response.data)
@@ -183,6 +185,7 @@ export const attendanceApi = {
         rejection_reason: item.rejection_reason ?? "",
         l1_status: item.l1_status ?? "pending",
         l2_status: item.l2_status ?? "pending",
+        shift : item.shift ?? "",
       }))
     } catch (error) {
       console.error(`Failed to fetch regularization requests for employee ${empId}:`, error)

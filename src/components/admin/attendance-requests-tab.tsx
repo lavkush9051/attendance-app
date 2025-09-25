@@ -24,6 +24,7 @@ interface AttendanceRequest {
   type: "missed-clock-in" | "missed-clock-out" | "wrong-time" | "system-error" | "other"
   status: "pending" | "approved" | "rejected" | "l1 approved"
   appliedDate: string
+  shift?: string
 }
 
 export function AttendanceRequestsTab() {
@@ -128,6 +129,7 @@ export function AttendanceRequestsTab() {
         type: item.type ?? "",
         status: item.status ?? "pending",
         appliedDate: item.applied_date ?? "",
+        shift: item.shift ?? "-"
       }))
       setIsLoading(true)
       setAttendanceRequests(records)
@@ -407,7 +409,7 @@ export function AttendanceRequestsTab() {
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Date</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Clock In</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Clock Out</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Type</th>
+                        {/* <th className="text-left py-3 px-4 font-medium text-gray-600">Type</th> */}
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Status</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Actions</th>
                       </tr>
@@ -444,9 +446,9 @@ export function AttendanceRequestsTab() {
                               )}
                             </div>
                           </td>
-                          <td className="py-4 px-4">
+                          {/* <td className="py-4 px-4">
                             <span className="text-gray-700">{request.type}</span>
-                          </td>
+                          </td> */}
                           <td className="py-4 px-4">
                             <Badge className={getStatusColor(request.status)}>
                               {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
@@ -480,15 +482,13 @@ export function AttendanceRequestsTab() {
                                       <X className="h-3 w-3" />
                                     )}
                                   </Button>
-                                  <Button size="sm" variant="outline" onClick={() => handleViewDetails(request)}>
-                                    <Eye className="h-3 w-3" />
-                                  </Button>
+                                  
                                 </>
-                              ) : (
-                                <Button size="sm" variant="ghost" onClick={() => handleViewDetails(request)}>
+                              ) : ""
+                              }
+                              <Button size="sm" variant="ghost" onClick={() => handleViewDetails(request)}>
                                   <Eye className="h-3 w-3" />
                                 </Button>
-                              )}
                             </div>
                           </td>
                         </tr>
@@ -518,10 +518,10 @@ export function AttendanceRequestsTab() {
                           <span className="text-gray-600">Date:</span>
                           <span className="text-gray-900">{formatDate(request.date)}</span>
                         </div>
-                        <div className="flex justify-between text-sm">
+                        {/* <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Type:</span>
                           <span className="text-gray-900">{request.type}</span>
-                        </div>
+                        </div> */}
                         {request.requestedClockIn && (
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Requested Clock In:</span>
@@ -536,10 +536,10 @@ export function AttendanceRequestsTab() {
                         )}
                       </div>
 
-                      <div className="mb-3">
+                      {/* <div className="mb-3">
                         <p className="text-sm text-gray-600 mb-1">Reason:</p>
                         <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{request.reason}</p>
-                      </div>
+                      </div> */}
 
                       {request.status.toLowerCase() === "pending" ? (
                         <div className="flex space-x-2">
@@ -570,17 +570,21 @@ export function AttendanceRequestsTab() {
                             )}
                             Reject
                           </Button>
-                          <Button size="sm" variant="outline" className="w-full bg-transparent" onClick={() => handleViewDetails(request)}>
+                          {/* <Button size="sm" variant="outline" className="w-full bg-transparent" onClick={() => handleViewDetails(request)}>
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
-                          </Button>
+                          </Button> */}
                         </div>
-                      ) : (
+                      ) 
+                      : 
+                      ""
+                      }
+                      <div className="mt-3">
                         <Button size="sm" variant="outline" className="w-full bg-transparent" onClick={() => handleViewDetails(request)}>
                           <Eye className="h-4 w-4 mr-2" />
                           View Details
                         </Button>
-                      )}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -609,7 +613,8 @@ export function AttendanceRequestsTab() {
                 selectedAttend.status === "l1 approved"
                   ? "approved"
                   : selectedAttend.status,
-            appliedDate: selectedAttend.appliedDate
+            appliedDate: selectedAttend.appliedDate,
+            shift: selectedAttend.shift
           }
           : null
         }

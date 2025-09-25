@@ -25,6 +25,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
     clockIn: "",
     clockOut: "",
     reason: "",
+    shift: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -38,12 +39,20 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
     { value: "other", label: "Other" },
   ]
 
+  const shiftTypes = [
+    { value: "I", label: "I (07:00-15:30)" },
+    { value: "II", label: "II (15:00-23:30)" },
+    { value: "III", label: "III (23:00-07:30)" },
+    { value: "GEN", label: "General" },
+  ]
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
     if (!formData.date) newErrors.date = "Date is required"
     if (!formData.type) newErrors.type = "Regularization type is required"
     if (!formData.reason.trim()) newErrors.reason = "Reason is required"
+    if (!formData.shift) newErrors.shift = "Shift type is required"
 
     if (formData.clockIn && formData.clockOut) {
       const clockIn = new Date(`2000-01-01 ${formData.clockIn}`)
@@ -81,9 +90,10 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
         applied_date: "", // backend should set, or leave blank
         approved_by: "",
         approved_date: "",
-        rejection_reason: ""
+        rejection_reason: "",
+        shift: formData.shift,
       })
-      console.log("Regularization request submitted successfully", formData.clockIn, formData.clockOut, formData.reason, formData.type)
+      console.log("Regularization request submitted successfully", formData.clockIn, formData.clockOut, formData.reason, formData.type, formData.shift)
       setSubmitStatus("success")
       setTimeout(() => {
         onClose()
@@ -93,6 +103,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
           clockIn: "",
           clockOut: "",
           reason: "",
+          shift: "",
         })
         setSubmitStatus("idle")
       }, 2000)
@@ -151,24 +162,45 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
               {errors.date && <p className="text-sm text-red-500 mt-1">{errors.date}</p>}
             </div>
 
-            <div>
-              <Label htmlFor="type">Regularization Type *</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, type: value }))}
-              >
-                <SelectTrigger className={errors.type ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Select regularization type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {regularizeTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.type && <p className="text-sm text-red-500 mt-1">{errors.type}</p>}
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <Label htmlFor="type">Regularization Type *</Label>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value) => setFormData((prev) => ({ ...prev, type: value }))}
+                >
+                  <SelectTrigger className={errors.type ? "border-red-500" : ""}>
+                    <SelectValue placeholder="Select regularization type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {regularizeTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.type && <p className="text-sm text-red-500 mt-1">{errors.type}</p>}
+              </div>
+              <div>
+                <Label htmlFor="shift">Shift Type *</Label>
+                <Select
+                  value={formData.shift}
+                  onValueChange={(value) => setFormData((prev) => ({ ...prev, shift: value }))}
+                >
+                  <SelectTrigger className={errors.shift ? "border-red-500" : ""}>
+                    <SelectValue placeholder="Select Shift" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {shiftTypes.map((shift) => (
+                      <SelectItem key={shift.value} value={shift.value}>
+                        {shift.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.shift && <p className="text-sm text-red-500 mt-1">{errors.shift}</p>}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

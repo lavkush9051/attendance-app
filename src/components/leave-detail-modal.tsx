@@ -51,6 +51,11 @@ export function LeaveDetailModal({ isOpen, onClose, leave, onCancelled }: LeaveD
     // and cancellation must be before today's 11:59 PM
     return leaveStart > now && now <= deadline
   }
+  const isRevokeVisible = () => {
+      const status = leave.status?.toLowerCase()
+      return status !== "cancelled" && status !== "rejected" && isCancellable()
+
+  }
 
   // --- Handle cancel click ---
   const handleCancel = async () => {
@@ -309,14 +314,25 @@ export function LeaveDetailModal({ isOpen, onClose, leave, onCancelled }: LeaveD
               </div>
             </>
           )}
-          <div>
-            <h3 className="font-medium text-gray-900 mb-2">Remark (Optional, max 150 characters)</h3>
+            {/* <h3 className="font-medium text-gray-900 mb-2">Remark (Optional, max 150 characters)</h3>
             <Textarea
               placeholder="Add a remark for approval/rejection..."
               value={leave.remarks || ""}
             // value={leave.remarks || remarks}
-            />
-          </div>
+            /> */}
+            {/* Remarks Section - only visible when not pending */}
+            {leave.status !== "pending" && leave.remarks && (
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">Remark</h3>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  {/* <p className="text-gray-700">{leave.remarks}</p> */}
+                  <pre className="text-gray-700 whitespace-pre-line">
+                    {leave.remarks}
+                  </pre>
+                </div>
+              </div>
+            )}
+            
           <div className="flex space-x-3 pt-4">
             <Button
               variant="outline"
@@ -326,7 +342,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave, onCancelled }: LeaveD
               Close
             </Button>
 
-            {leave.status !== "cancelled" && (
+            {isRevokeVisible() && (
               <Button
                 variant="destructive"
                 className="flex-1"
@@ -334,7 +350,6 @@ export function LeaveDetailModal({ isOpen, onClose, leave, onCancelled }: LeaveD
                 disabled={isCancelling}
               >
                 {isCancelling ? "Cancelling..." : "Revoke"}
-
               </Button>
             )}
           </div>
