@@ -155,7 +155,8 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
   const isActionable = canTakeAction()
   // IMPORTANT: Build only the *new* remark for this action (do NOT prepend existing trail)
   const buildNewRemark = (action: "Approved" | "Rejected") => {
-    const actor = leave.status === "pending" ? "L1 Manager" : "L2 Manager"
+    //const actor = leave.status === "pending" ? "L1 Manager" : "L2 Manager"
+    const actor = authApi.getUser().emp_id
     const trimmed = remarks.trim()
     return `${actor} (${action}) - ${trimmed}`
   }

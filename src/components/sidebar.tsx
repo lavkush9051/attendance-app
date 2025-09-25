@@ -1,5 +1,6 @@
 "use client"
 
+import myLogo from '../assests/my-logo.png';
 import { useRouter } from "next/navigation"
 import { Building2, Calendar, Clock, FileText, Home, Settings, LogOut, Camera  } from "lucide-react"
 import { authApi } from "@/lib/api"
@@ -41,7 +42,8 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
       <div className="flex flex-col flex-grow bg-white border-r border-gray-200 pt-5 pb-4 overflow-y-auto">
         {/* Logo */}
         <div className="flex items-center flex-shrink-0 px-4">
-          <Building2 className="h-8 w-8 text-blue-600" />
+          {/* <Building2 className="h-8 w-8 text-blue-600" /> */}
+          <img src={myLogo.src} className="h-8 w-8" alt="My Logo" />
           <span className="ml-2 text-xl font-semibold text-gray-900">JNPA</span>
         </div>
 

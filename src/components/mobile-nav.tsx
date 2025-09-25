@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { X, Building2, Home, Calendar, Clock, FileText, Settings, LogOut, Camera } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { authApi } from "@/lib/api"
-
+import myLogo from '../assests/my-logo.png';
 
 interface MobileNavProps {
   isOpen: boolean
@@ -53,7 +53,8 @@ export function MobileNav({ isOpen, onClose, currentView, onViewChange }: Mobile
       <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl">
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center">
-            <Building2 className="h-8 w-8 text-blue-600" />
+            {/* <Building2 className="h-8 w-8 text-blue-600" /> */}
+            <img src={myLogo.src} className="h-8 w-8" alt="My Logo" />
             <span className="ml-2 text-xl font-semibold text-gray-900">JNPA</span>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
