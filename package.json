@@ -10,6 +10,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
@@ -59,7 +60,7 @@
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
-    "vaul": "^0.9.9",
+    "vaul": "^1.1.1",
     "xlsx": "^0.18.5",
     "zod": "3.25.67"
   },
