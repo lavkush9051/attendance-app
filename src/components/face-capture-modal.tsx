@@ -89,7 +89,7 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
       const response = await fetch(capturedImage)
       const blob = await response.blob()
 
-      const result = await attendanceApi.clockInOut(empId, blob, shift)
+      const result = await attendanceApi.clockIn(empId, blob, shift)
 
       if (result.success) {
         alert(`Successfully ${result.action}! Time: ${result.timestamp}`)

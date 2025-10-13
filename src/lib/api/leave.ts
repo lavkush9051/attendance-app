@@ -41,7 +41,7 @@ export interface CreateLeaveRequest {
 
 export interface LeaveActionRequest {
   leave_req_id: number
-  action: "approve" | "reject"
+  action: "approve" | "reject" | "cancel"
   admin_id: number
   comments?: string
   remarks?: string
@@ -352,19 +352,61 @@ async getLeaveBalance(empId: number | string): Promise<LeaveBalance> {
     return `${base}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`
   },
 
-    openAttachmentUrl(pathOrUrl: string) {
-    const base = absoluteApiBase()
-    const href = /^https?:\/\//i.test(pathOrUrl)
-      ? pathOrUrl
-      : `${base}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`
-
-    const a = document.createElement("a")
-    a.href = href
-    a.target = "_blank"
-    a.rel = "noopener"
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
+    async openAttachmentUrl(pathOrUrl: string) {
+    try {
+      // Extract just the path from the full URL if needed
+      const path = pathOrUrl.startsWith('/api/') ? pathOrUrl : `/api/${pathOrUrl}`
+      
+      // Use authenticated fetch to download the file
+      const response = await apiClient.get(path)
+      
+      if (response.success && response.data) {
+        // The response.data should be the Response object for non-JSON
+        const fetchResponse = response.data as Response
+        
+        // Get the blob from the response
+        const blob = await fetchResponse.blob()
+        const url = window.URL.createObjectURL(blob)
+        
+        // Try to extract filename from Content-Disposition header
+        const contentDisposition = fetchResponse.headers.get('Content-Disposition')
+        let filename = `attachment_${Date.now()}`
+        
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+          if (filenameMatch) {
+            filename = filenameMatch[1].replace(/['"]/g, '')
+          }
+        }
+        
+        const a = document.createElement("a")
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        
+        // Clean up the blob URL
+        window.URL.revokeObjectURL(url)
+      } else {
+        throw new Error('Failed to get attachment')
+      }
+    } catch (error) {
+      console.error('Failed to download attachment:', error)
+      // Fallback to opening in new tab (might show auth error but user will know)
+      const base = absoluteApiBase()
+      const href = /^https?:\/\//i.test(pathOrUrl)
+        ? pathOrUrl
+        : `${base}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`
+      
+      const a = document.createElement("a")
+      a.href = href
+      a.target = "_blank"
+      a.rel = "noopener"
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+    }
   },
 
   /** Build the canonical download URL from ids (if you don't want to use the URL returned by /meta). */

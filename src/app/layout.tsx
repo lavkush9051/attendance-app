@@ -64,11 +64,14 @@ export const metadata: Metadata = {
   // Prefer Metadata API over manual <link> tags:
   icons: {
     icon: [
-      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      // { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      // { url: "/favicon.svg", type: "image/svg+xml" },
+      // { url: "/favicon.ico" },
+      { url: "/ameisetech-favicon-96x96.png", sizes: "96x96", type: "image/png" },
       { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico" },
+      { url: "/ameisetech-favicon.ico" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    apple: [{ url: "/ameisetech-apple-touch-icon.png", sizes: "180x180" }],
   },
   appleWebApp: {
     capable: true,

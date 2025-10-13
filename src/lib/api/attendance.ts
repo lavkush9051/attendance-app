@@ -194,31 +194,76 @@ export const attendanceApi = {
   },
 
 
-  async clockInOut(empId: string, faceImage: Blob, shift: string) {
+  async clockIn(empId: string, faceImage: Blob, shift: string) {
     try {
       // (Optional) Location – keep for future (not used by backend right now)
-      let latitude: string | undefined
-      let longitude: string | undefined
-      if (navigator.geolocation) {
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              timeout: 5000,
-              enableHighAccuracy: true,
-            })
-          })
-          latitude = position.coords.latitude.toString()
-          longitude = position.coords.longitude.toString()
-        } catch (geoError) {
-          console.warn("Location access denied or unavailable:", geoError)
+    let latitude;
+    let longitude;
+
+    // --- 1. Get User Geolocation ---
+    // Check if the geolocation API is available in the browser.
+    if (navigator.geolocation) {
+      try {
+        // Create a promise to await the result of the asynchronous geolocation call.
+        // We explicitly type the Promise to resolve with GeolocationPosition.
+        const position = await new Promise < GeolocationPosition > ((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            timeout: 10000, // Increased timeout for better accuracy
+            enableHighAccuracy: true,
+          });
+        });
+        latitude = position.coords.latitude;
+        longitude = position.coords.longitude;
+        console.log(`Location captured: ${latitude}, ${longitude}`);
+      } catch (geoError) {
+        // Handle different types of geolocation errors.
+        let reason = "Could not get your location.";
+
+        // Type guard to safely handle the 'unknown' type of geoError
+        if (geoError instanceof GeolocationPositionError) {
+            if (geoError.code === GeolocationPositionError.PERMISSION_DENIED) {
+                reason = "Location access was denied. Please enable it in your browser settings to clock in.";
+            } else if (geoError.code === GeolocationPositionError.POSITION_UNAVAILABLE) {
+                reason = "Location information is unavailable.";
+            } else if (geoError.code === GeolocationPositionError.TIMEOUT) {
+                reason = "The request to get user location timed out.";
+            }
+        } else if (geoError instanceof Error) {
+            // Handle other types of generic errors
+            reason = geoError.message;
         }
+
+        console.warn("Geolocation error:", reason, geoError);
+        // Return a specific error if location fails, as it's required by the backend.
+        return {
+          success: false,
+          action: "clock-in",
+          timestamp: new Date().toISOString(),
+          empId,
+          faceVerified: false,
+          error: reason,
+        };
       }
+    } else {
+      // Handle the case where the browser does not support geolocation.
+      return {
+        success: false,
+        action: "clock-in",
+        timestamp: new Date().toISOString(),
+        empId,
+        faceVerified: false,
+        error: "Geolocation is not supported by your browser.",
+      };
+    }
 
       // IMPORTANT: backend expects keys "file" and "face_user_emp_id"
       const formData = new FormData()
       formData.append("file", faceImage, "face-capture.jpg")
       formData.append("face_user_emp_id", empId)
       formData.append("shift", shift)
+      formData.append("lat", latitude.toString());
+      formData.append("lon", longitude.toString());
+      console.log("[LOG] : Submitting clock-in with location:", latitude, longitude);
       // The backend doesn’t accept timestamp/lat/long yet; keep them commented for later use:
       // formData.append("timestamp", new Date().toISOString())
       // if (latitude && longitude) { formData.append("latitude", latitude); formData.append("longitude", longitude) }

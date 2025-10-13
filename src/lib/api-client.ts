@@ -13,6 +13,9 @@ class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
 
+    // Get auth token from localStorage (client-side only)
+    const authToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null
+
     // Create abort controller for timeout
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), this.timeout)
@@ -23,6 +26,7 @@ class ApiClient {
         signal: controller.signal,
         headers: {
           ...(isJsonBody ? { "Content-Type": "application/json" } : {}),
+          ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {}),
           ...options.headers,
         },
       })
@@ -97,6 +101,10 @@ class ApiClient {
   // Multipart form data (for file uploads)
   async postFormData<T>(endpoint: string, formData: FormData): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
+    
+    // Get auth token from localStorage (client-side only)
+    const authToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null
+    
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), this.timeout)
 
@@ -105,6 +113,9 @@ class ApiClient {
         method: "POST",
         body: formData,
         signal: controller.signal,
+        headers: {
+          ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {}),
+        },
         // Don't set Content-Type for FormData, let browser set it with boundary
       })
 

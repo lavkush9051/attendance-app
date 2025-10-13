@@ -132,8 +132,13 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
 // admin-leave-req-detail-modal.tsx
   async function handleDownload(att: { id: number; url: string }) {
     console.log("Downloading from URL:", att.url, "attr:", att)
-    // att.url already looks like: /api/leave-request/39/attachment?actor_emp_id=10001
-    leaveApi.openAttachmentUrl(att.url)
+    try {
+      // att.url already looks like: /api/leave-request/39/attachment?actor_emp_id=10001
+      await leaveApi.openAttachmentUrl(att.url)
+    } catch (error) {
+      console.error('Download failed:', error)
+      // You could show a toast notification here
+    }
   }
 
   
