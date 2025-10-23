@@ -11,6 +11,15 @@ export async function registerFacesApi({
   files: File[];
 }) {
   if (files.length !== 4) throw new Error("Exactly 4 images are required.");
+  console.log("Register API: function called");
+  //sandeep added token
+  const token = localStorage.getItem("token"); // 👈 Get token
+  console.log("Token being sent:", token);
+ 
+  if (!token) {
+    throw new Error("User not authenticated. Please log in again.");
+  }
+// sandeep End
 
   const fd = new FormData();
   fd.append("emp_id", String(empId));
@@ -20,6 +29,9 @@ export async function registerFacesApi({
   const res = await fetch(`${baseUrl}/api/register`, {
     method: "POST",
     body: fd,
+    headers: {
+      Authorization: `Bearer ${token}`, // 👈 Attach JWT token
+    },
   });
 
   const json = await res.json().catch(() => ({}));
