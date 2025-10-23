@@ -221,7 +221,19 @@ useEffect(() => {
       const files = await Promise.all(shots.map((s, i) => dataUrlToFile(s, `face-${i + 1}.jpg`)))
       files.forEach((f) => fd.append("files", f))
 
-      const res = await fetch(`${apiBase}/api/register`, { method: "POST", body: fd })
+     // const res = await fetch(`${apiBase}/api/register`, { method: "POST", body: fd })
+    const token = localStorage.getItem("auth_token")
+console.log("Token being sent:", token) // This will help you debug if the token is present
+
+const res = await fetch(`${apiBase}/api/register`, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${token}`, // This is the crucial fix
+  },
+  body: fd,
+})
+
+
       const json = await res.json().catch(() => ({} as any))
       if (!res.ok || json?.status === "failed") {
         throw new Error(json?.reason || json?.error || `HTTP ${res.status}`)
