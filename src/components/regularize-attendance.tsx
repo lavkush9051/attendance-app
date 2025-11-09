@@ -218,58 +218,58 @@ export function RegularizeAttendance() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
+      <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+        <Card className="bg-blue-50 border-blue-200 border-0 shadow-sm hover:shadow-md transition-shadow m-1 sm:m-0">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <Clock className="h-5 w-5 text-blue-600" />
               </div>
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{totalRequests}</p>
-                <p className="text-sm font-medium text-gray-600">Total Requests</p>
+              <div className="ml-2">
+                <p className="text-lg font-bold text-gray-900">{totalRequests}</p>
+                <p className="text-xs font-medium text-gray-600">Total Requests</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-4">
+        <Card className="bg-green-50 border-green-200 border-0 shadow-sm hover:shadow-md transition-shadow m-1 sm:m-0">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
                 <CheckCircle className="h-5 w-5 text-green-600" />
               </div>
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{approvedRequests}</p>
-                <p className="text-sm font-medium text-gray-600">Approved</p>
+              <div className="ml-2">
+                <p className="text-lg font-bold text-gray-900">{approvedRequests}</p>
+                <p className="text-xs font-medium text-gray-600">Approved</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-yellow-50 border-yellow-200">
-          <CardContent className="p-4">
+        <Card className="bg-yellow-50 border-yellow-200 border-0 shadow-sm hover:shadow-md transition-shadow m-1 sm:m-0">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-yellow-100 rounded-lg">
                 <Clock className="h-5 w-5 text-yellow-600" />
               </div>
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{pendingRequests}</p>
-                <p className="text-sm font-medium text-gray-600">Pending</p>
+              <div className="ml-2">
+                <p className="text-lg font-bold text-gray-900">{pendingRequests}</p>
+                <p className="text-xs font-medium text-gray-600">Pending</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-red-50 border-red-200">
-          <CardContent className="p-4">
+        <Card className="bg-red-50 border-red-200 border-0 shadow-sm hover:shadow-md transition-shadow m-1 sm:m-0">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-red-100 rounded-lg">
                 <XCircle className="h-5 w-5 text-red-600" />
               </div>
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{rejectedRequests}</p>
-                <p className="text-sm font-medium text-gray-600">Rejected</p>
+              <div className="ml-2">
+                <p className="text-lg font-bold text-gray-900">{rejectedRequests}</p>
+                <p className="text-xs font-medium text-gray-600">Rejected</p>
               </div>
             </div>
           </CardContent>
