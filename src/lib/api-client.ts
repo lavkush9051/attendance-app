@@ -80,6 +80,15 @@ class ApiClient {
     return this.request<T>(url, { method: "GET" })
   }
 
+  async getFile(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<Response>> {
+    const url = params ? `${endpoint}?${new URLSearchParams(params)}` : endpoint
+    
+    // This will call your private 'request' method.
+    // Your 'request' method will see the non-JSON content type
+    // and correctly return { success: true, data: Response }
+    return this.request<Response>(url, { method: "GET" })
+  }
+
   async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: "POST",

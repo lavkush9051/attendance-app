@@ -119,6 +119,61 @@ export const attendanceApi = {
     }
   },
 
+async downloadAttendanceReport(emp_id: string, start: string, end: string): Promise<Blob> {
+    try {
+      const queryParams: { start_date: string; end_date: string; emp_id?: string } = {
+        start_date: start,
+        end_date: end,
+      }
+      if (emp_id && emp_id !== "all") {
+        queryParams.emp_id = emp_id
+      }
+
+      // 1. Call your new .getFile() method
+      const apiResponse = await apiClient.getFile(
+        "/reports/attendance/download",
+        queryParams
+      )
+
+      // 2. Your 'request' method returns the raw Response in the 'data' field
+      //    We must cast it from 'unknown' or 'any' to 'Response'
+      const response = apiResponse.data as Response
+
+      if (!response.ok) {
+        // Handle cases where the server returned an error (e.g., 404, 500)
+        throw new Error(`Download failed with status: ${response.status}`)
+      }
+
+      // 3. Convert the Response body to a Blob. This is the file!
+      const fileBlob = await response.blob()
+      return fileBlob
+
+    } catch (error) {
+      // ===== Safely log the error =====
+      console.error("Failed to download attendance report:", error)
+
+      // This logic is still good for catching errors
+      if (error && typeof error === "object" && "response" in error) {
+        const response = (error as { response?: { data?: unknown } }).response
+
+        if (response && response.data instanceof Blob) {
+          try {
+            const errorText = await response.data.text()
+            const errorJson = JSON.parse(errorText)
+            console.error("Server error (from blob):", errorJson)
+          } catch (e) {
+            console.error("Could not parse error response blob:", e)
+          }
+        } else if (response && response.data) {
+          console.error("Server error (from JSON):", response.data)
+        }
+      }
+      
+      throw error
+      // =====================================
+    }
+  },
+
   async postRegularizeAttendance(data: AttendanceRequest) {
     try {
       const formData = new FormData()

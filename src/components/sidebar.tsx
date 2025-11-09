@@ -1,7 +1,7 @@
 "use client"
 
-//import myLogo from '../assests/my-logo.png';
-import myLogo from '../assests/ameisetech-favicon-192x192.png';
+import myLogo from '../assests/my-logo.png';
+//import myLogo from '../assests/ameisetech-favicon-192x192.png';
 
 import { useRouter } from "next/navigation"
 import { Building2, Calendar, Clock, FileText, Home, Settings, LogOut, Camera  } from "lucide-react"
@@ -29,7 +29,7 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
     { id: "dashboard", label: "Dashboard", icon: Home },
     { id: "apply-leave", label: "Apply Leave", icon: Calendar },
     { id: "regularize", label: "Regularize Attendance", icon: Clock },
-    { id: "leave-history", label: "Leave History", icon: FileText },
+    // { id: "leave-history", label: "Leave History", icon: FileText },
     { id: "settings", label: "Settings", icon: Settings },
     { id: "register-face-modal", label: "Register Face", icon: Camera },
   ]
@@ -45,9 +45,9 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center flex-shrink-0 px-4">
           {/* <Building2 className="h-8 w-8 text-blue-600" /> */}
-          {/* <img src={myLogo.src} className="h-8 w-8" alt="My Logo" /> */}
-          <img src={myLogo.src} className="h-14 w-16" alt="My Logo" />
-          <span className="ml-2 text-xl font-semibold text-gray-900">AmeiseTech</span>
+          <img src={myLogo.src} className="h-8 w-8" alt="My Logo" />
+          {/* <img src={myLogo.src} className="h-14 w-16" alt="My Logo" /> */}
+          <span className="ml-2 text-xl font-semibold text-gray-900">JNPA</span>
         </div>
 
         {/* Navigation */}

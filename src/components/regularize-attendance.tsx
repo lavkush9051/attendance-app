@@ -346,7 +346,7 @@ export function RegularizeAttendance() {
                       <tr className="border-b border-gray-200">
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Request ID</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Date</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Type</th>
+                        {/* <th className="text-left py-3 px-4 font-medium text-gray-600">Type</th> */}
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Time Changes</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Status</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-600">Applied</th>
@@ -362,9 +362,9 @@ export function RegularizeAttendance() {
                           <td className="py-4 px-4">
                             <span className="text-gray-700">{formatDate(record.date)}</span>
                           </td>
-                          <td className="py-4 px-4">
+                          {/* <td className="py-4 px-4">
                             <span className="text-gray-700">{getTypeLabel(record.type)}</span>
-                          </td>
+                          </td> */}
                           <td className="py-4 px-4">
                             <div className="text-sm space-y-1">
                               {record.requestedClockIn && (
@@ -405,7 +405,7 @@ export function RegularizeAttendance() {
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <h3 className="font-medium text-gray-900">{record.id}</h3>
-                          <p className="text-sm text-gray-600">{getTypeLabel(record.type)}</p>
+                          {/* <p className="text-sm text-gray-600">{getTypeLabel(record.type)}</p> */}
                         </div>
                         <Badge className={getStatusColor(record.status)}>
                           {record.status.charAt(0).toUpperCase() + record.status.slice(1)}

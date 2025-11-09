@@ -228,10 +228,10 @@ export function LeaveHistory() {
           <h1 className="text-2xl font-bold text-gray-900">Leave History</h1>
           <p className="text-sm text-gray-600 mt-1">Track and manage your leave applications</p>
         </div>
-        <Button className="mt-4 sm:mt-0">
+        {/* <Button className="mt-4 sm:mt-0">
           <Download className="h-4 w-4 mr-2" />
           Export Report
-        </Button>
+        </Button> */}
       </div>
 
       {/* Summary Cards */}

@@ -106,11 +106,11 @@ export function AdminPanel() {
                   <span className="hidden sm:inline">Attendance Requests</span>
                   <span className="sm:hidden">Attendance</span>
                 </TabsTrigger>
-                {/* <TabsTrigger value="shift-management" className="flex items-center space-x-2">
+                <TabsTrigger value="shift-management" className="flex items-center space-x-2">
                   <Users className="h-4 w-4" />
                   <span className="hidden sm:inline">Shift Management</span>
                   <span className="sm:hidden">Shifts</span>
-                </TabsTrigger> */}
+                </TabsTrigger>
                 <TabsTrigger value="reports" className="flex items-center space-x-2">
                   <FileText className="h-4 w-4" />
                   <span className="hidden sm:inline">Reports</span>
