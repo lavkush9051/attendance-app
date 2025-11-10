@@ -250,6 +250,19 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
 
 
   async clockIn(empId: string, faceImage: Blob, shift: string) {
+    const now = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+    const date = new Date(now);
+    const formattedDate = date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+    const formattedTime = date.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
     try {
       // (Optional) Location – keep for future (not used by backend right now)
     let latitude;
@@ -257,6 +270,8 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
 
     // --- 1. Get User Geolocation ---
     // Check if the geolocation API is available in the browser.
+
+
     if (navigator.geolocation) {
       try {
         // Create a promise to await the result of the asynchronous geolocation call.
@@ -293,7 +308,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
         return {
           success: false,
           action: "clock-in",
-          timestamp: new Date().toISOString(),
+          timestamp: `${formattedDate} ${formattedTime}`,
           empId,
           faceVerified: false,
           error: reason,
@@ -304,7 +319,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
       return {
         success: false,
         action: "clock-in",
-        timestamp: new Date().toISOString(),
+        timestamp: `${formattedDate} ${formattedTime}`,
         empId,
         faceVerified: false,
         error: "Geolocation is not supported by your browser.",
@@ -334,7 +349,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
         return {
           success: true,
           action: "clock-in",                    // backend currently implements only clock-in
-          timestamp: new Date().toISOString(),   // we stamp client time for the UI
+          timestamp: `${formattedDate} ${formattedTime}`,   // we stamp client time for the UI
           empId,
           location: latitude && longitude ? `${latitude},${longitude}` : undefined,
           faceVerified: true,
@@ -343,7 +358,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
         return {
           success: false,
           action: "clock-in",
-          timestamp: new Date().toISOString(),
+          timestamp: `${formattedDate} ${formattedTime}`,
           empId,
           faceVerified: false,
           error: raw?.reason || "Verification failed",
@@ -354,7 +369,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
       return {
         success: false,
         action: "clock-in",
-        timestamp: new Date().toISOString(),
+        timestamp: `${formattedDate} ${formattedTime}`,
         empId,
         faceVerified: false,
         error: error instanceof Error ? error.message : "Unknown error occurred",

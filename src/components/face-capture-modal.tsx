@@ -22,7 +22,10 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [askPermission, setAskPermission] = useState(false)
 
-  const shift = localStorage.getItem("user_shift") ? JSON.parse(localStorage.getItem("user_shift") || '{}').shift : 'GEN'; // Default to 'D' if not found
+  let shift = localStorage.getItem("user_shift") ? JSON.parse(localStorage.getItem("user_shift") || '{}').shift : 'GEN'; // Default to 'D' if not found
+  if(shift==="General"){
+    shift = "GEN";
+  }
   console.log("Using shift:", shift);
 
   const startCamera = useCallback(async () => {

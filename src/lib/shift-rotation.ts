@@ -9,7 +9,7 @@ const shiftTimes: Record<string, string> = {
   "II Shift": "15:00 - 23:30",
   "III Shift": "23:00 - 07:30",
   "Holiday": "--",
-  "General": "10:00 - 18:30",
+  "General": "10:00 - 17:45",
 }
 
 // Compute rotation pattern for a given date
