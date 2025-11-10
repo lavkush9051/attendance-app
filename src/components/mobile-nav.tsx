@@ -41,7 +41,7 @@ export function MobileNav({ isOpen, onClose, currentView, onViewChange }: Mobile
 
   ]
   // 🔹 Only add Admin Panel if user is Manager
-  if (user_designation.toLowerCase() === "manager" || user_designation.toLowerCase() === "dy general manager") {
+  if (user_designation.toLowerCase() === "manager" || user_designation.toLowerCase() === "dy general manager" || user_designation.toLowerCase() === "senior manager") {
     menuItems.push({ id: "admin-panel", label: "Admin Panel", icon: Settings })
   }
 
