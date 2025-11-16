@@ -72,70 +72,15 @@ export function RegularizeAttendance() {
       console.error(`Failed to fetch regularization requests for user ${emp.emp_id}:`, error)
       setRegularizeRecords([]);
     });
-  }, [])  
-    // Fetch regularization records from API
-
-
-  // Mock data
-  // Replace with actual API call
-  // const regularizeRecords1: RegularizeRecord[] = [
-  //   {
-  //     id: "REG001",
-  //     date: "2024-01-15",
-  //     type: "missed-clock-in",
-  //     originalClockOut: "6:00 PM",
-  //     requestedClockIn: "9:00 AM",
-  //     reason: "Forgot to clock in due to urgent meeting",
-  //     status: "approved",
-  //     appliedDate: "2024-01-15",
-  //     approvedBy: "Sarah Johnson",
-  //     approvedDate: "2024-01-16",
-  //   },
-  //   {
-  //     id: "REG002",
-  //     date: "2024-01-20",
-  //     type: "wrong-time",
-  //     originalClockIn: "10:30 AM",
-  //     originalClockOut: "6:00 PM",
-  //     requestedClockIn: "9:00 AM",
-  //     requestedClockOut: "6:00 PM",
-  //     reason: "System recorded wrong time due to network issue",
-  //     status: "pending",
-  //     appliedDate: "2024-01-21",
-  //   },
-  //   {
-  //     id: "REG003",
-  //     date: "2024-01-25",
-  //     type: "missed-clock-out",
-  //     originalClockIn: "9:00 AM",
-  //     requestedClockOut: "6:30 PM",
-  //     reason: "Emergency call, forgot to clock out",
-  //     status: "rejected",
-  //     appliedDate: "2024-01-26",
-  //     rejectionReason: "No supporting evidence provided",
-  //   },
-  //   {
-  //     id: "REG004",
-  //     date: "2024-02-01",
-  //     type: "system-error",
-  //     originalClockIn: "9:00 AM",
-  //     originalClockOut: "4:00 PM",
-  //     requestedClockOut: "6:00 PM",
-  //     reason: "System malfunction during clock out",
-  //     status: "approved",
-  //     appliedDate: "2024-02-02",
-  //     approvedBy: "Mike Chen",
-  //     approvedDate: "2024-02-02",
-  //   },
-  // ]
+  }, [])
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Approved":
+    switch (status.toLowerCase()) {
+      case "approved":
         return "bg-green-100 text-green-800 border-green-200"
-      case "Pending":
+      case "pending":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      case "Rejected":
+      case "rejected":
         return "bg-red-100 text-red-800 border-red-200"
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
@@ -160,12 +105,12 @@ export function RegularizeAttendance() {
   }
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "Approved":
+    switch (status.toLowerCase()) {
+      case "approved":
         return <CheckCircle className="h-4 w-4 text-green-500" />
-      case "Pending":
+      case "pending":
         return <Clock className="h-4 w-4 text-yellow-500" />
-      case "Rejected":
+      case "rejected":
         return <XCircle className="h-4 w-4 text-red-500" />
       default:
         return <Clock className="h-4 w-4 text-gray-500" />
@@ -307,7 +252,7 @@ export function RegularizeAttendance() {
               </SelectContent>
             </Select>
 
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
+            {/* <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
@@ -319,7 +264,7 @@ export function RegularizeAttendance() {
                 <SelectItem value="system-error">System Error</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
-            </Select>
+            </Select> */}
           </div>
         </CardContent>
       </Card>

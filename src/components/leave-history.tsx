@@ -72,90 +72,17 @@ export function LeaveHistory() {
     });
   }, [])
 
-  // const leaveRecords: LeaveRecord[] = [
-  //   {
-  //     id: "LV001",
-  //     type: "Annual Leave",
-  //     startDate: "2024-01-15",
-  //     endDate: "2024-01-19",
-  //     days: 5,
-  //     status: "approved",
-  //     reason: "Family vacation to Goa",
-  //     appliedDate: "2024-01-01",
-  //     approvedBy: "Sarah Johnson",
-  //     approvedDate: "2024-01-02",
-  //     attachment: "flight-tickets.pdf",
-  //   },
-  //   {
-  //     id: "LV002",
-  //     type: "Sick Leave",
-  //     startDate: "2024-02-10",
-  //     endDate: "2024-02-12",
-  //     days: 3,
-  //     status: "approved",
-  //     reason: "Fever and flu symptoms",
-  //     appliedDate: "2024-02-09",
-  //     approvedBy: "Sarah Johnson",
-  //     approvedDate: "2024-02-09",
-  //     attachment: "medical-certificate.pdf",
-  //   },
-  //   {
-  //     id: "LV003",
-  //     type: "Personal Leave",
-  //     startDate: "2024-03-05",
-  //     endDate: "2024-03-05",
-  //     days: 1,
-  //     status: "pending",
-  //     reason: "Personal work - bank visit",
-  //     appliedDate: "2024-03-01",
-  //   },
-  //   {
-  //     id: "LV004",
-  //     type: "Emergency Leave",
-  //     startDate: "2024-02-20",
-  //     endDate: "2024-02-21",
-  //     days: 2,
-  //     status: "rejected",
-  //     reason: "Family emergency",
-  //     appliedDate: "2024-02-19",
-  //     rejectionReason: "Insufficient documentation provided",
-  //   },
-  //   {
-  //     id: "LV005",
-  //     type: "Annual Leave",
-  //     startDate: "2024-04-15",
-  //     endDate: "2024-04-22",
-  //     days: 8,
-  //     status: "cancelled",
-  //     reason: "Wedding ceremony",
-  //     appliedDate: "2024-03-15",
-  //   },
-  //   {
-  //     id: "LV006",
-  //     type: "Maternity Leave",
-  //     startDate: "2024-05-01",
-  //     endDate: "2024-08-01",
-  //     days: 90,
-  //     status: "approved",
-  //     reason: "Maternity leave",
-  //     appliedDate: "2024-03-01",
-  //     approvedBy: "HR Department",
-  //     approvedDate: "2024-03-05",
-  //     attachment: "medical-certificate.pdf",
-  //   },
-  // ]
-
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Approved":
+    switch (status.toLowerCase()) {
+      case "approved":
         return "bg-green-100 text-green-800 border-green-200"
-      case "Pending":
+      case "pending":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      case "Rejected":
+      case "rejected":
         return "bg-red-100 text-red-800 border-red-200"
-      case "Cancelled":
+      case "cancelled":
         return "bg-gray-100 text-gray-800 border-gray-200"
-      case "L1 Approved":
+      case "l1 approved":
         return "bg-gray-100 text-gray-800 border-gray-200"
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
@@ -163,16 +90,16 @@ export function LeaveHistory() {
   }
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "Approved":
+    switch (status.toLowerCase()) {
+      case "approved":
         return "✓"
-      case "L1 Approved":
+      case "l1 approved":
         return "✓"
-      case "Pending":
+      case "pending":
         return "⏳"
-      case "Rejected":
+      case "rejected":
         return "✗"
-      case "Cancelled":
+      case "cancelled":
         return "⊘"
       default:
         return "?"
@@ -183,9 +110,10 @@ export function LeaveHistory() {
     const matchesSearch =
       record.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
       record.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.id.toLowerCase().includes(searchTerm.toLowerCase())
+      record.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.status.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesStatus = statusFilter === "all" || record.status === statusFilter
+    const matchesStatus = statusFilter === "all" || record.status.toLowerCase() === statusFilter.toLowerCase()
     const matchesType = typeFilter === "all" || record.type === typeFilter
 
     return matchesSearch && matchesStatus && matchesType

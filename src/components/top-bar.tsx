@@ -87,7 +87,18 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick}>
               <Menu className="h-6 w-6" />
             </Button>
-            <h1 className="ml-4 lg:ml-0 text-2xl font-semibold text-gray-900">Hi, {userName}</h1>
+            <h1
+              className="ml-4 lg:ml-0 text-xl sm:text-2xl font-semibold text-gray-900 flex items-center space-x-1"
+            >
+              <span>Hi,&nbsp;</span>
+              <span
+                className="block max-w-[140px] sm:max-w-[180px] lg:max-w-[220px] truncate"
+                title={userName}
+                aria-label={`User name ${userName}`}
+              >
+                {userName}
+              </span>
+            </h1>
           </div>
 
           <div className="flex items-center space-x-4">

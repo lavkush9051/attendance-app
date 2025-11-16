@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { useState } from "react"
+import { attendanceApi } from "@/lib/api/attendance"
 
 interface RegularizeRecord {
   id: string
@@ -27,9 +29,10 @@ interface RegularizeDetailModalProps {
   isOpen: boolean
   onClose: () => void
   record: RegularizeRecord | null
+  onCancelled?: (requestId: string) => void
 }
 
-export function RegularizeDetailModal({ isOpen, onClose, record }: RegularizeDetailModalProps) {
+export function RegularizeDetailModal({ isOpen, onClose, record, onCancelled }: RegularizeDetailModalProps) {
   if (!isOpen || !record) return null
 
   const getStatusColor = (status: string) => {
@@ -90,6 +93,28 @@ export function RegularizeDetailModal({ isOpen, onClose, record }: RegularizeDet
       month: "short",
       day: "numeric",
     })
+  }
+
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState<string | null>(null)
+
+  const handleCancel = async () => {
+    if (!record) return
+    if (record.status !== 'pending') return
+    const confirm = window.confirm('Cancel this regularization request?')
+    if (!confirm) return
+    setCancelling(true)
+    setCancelError(null)
+    try {
+      await attendanceApi.cancelRegularizationRequest(record.id)
+      window.alert('Regularization request cancelled')
+      if (onCancelled) onCancelled(record.id)
+      onClose()
+    } catch (e: any) {
+      setCancelError(e.message || 'Failed to cancel request')
+    } finally {
+      setCancelling(false)
+    }
   }
 
   return (
@@ -262,11 +287,19 @@ export function RegularizeDetailModal({ isOpen, onClose, record }: RegularizeDet
               Close
             </Button>
             {record.status === "pending" && (
-              <Button variant="destructive" className="flex-1">
-                Cancel Request
+              <Button
+                variant="destructive"
+                className="flex-1"
+                disabled={cancelling}
+                onClick={handleCancel}
+              >
+                {cancelling ? 'Cancelling...' : 'Delete Request'}
               </Button>
             )}
           </div>
+          {cancelError && (
+            <p className="text-xs text-red-600 mt-2">{cancelError}</p>
+          )}
         </CardContent>
       </Card>
     </div>

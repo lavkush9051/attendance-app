@@ -177,10 +177,10 @@ export function AttendanceDetailModal({ isOpen, onClose, date, onRegularize, att
             <Button variant="outline" onClick={onClose} className="flex-1 bg-transparent">
               Close
             </Button>
-            <Button onClick={onRegularize} className="flex-1">
+            {/* <Button onClick={onRegularize} className="flex-1">
               <Edit className="h-4 w-4 mr-2" />
               Regularize
-            </Button>
+            </Button> */}
           </div>
         </CardContent>
       </Card>

@@ -38,73 +38,6 @@ export function AttendanceRequestsTab() {
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; message: string } | null>(null)
   const [selectedAttend, setSelectedAttend] = useState<AttendanceRequest | null>(null)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
-  // Mock data - in real app, this would come from API
-
-  // const mockAttendanceRequests: AttendanceRequest[] = [
-  //   {
-  //     id: "AR001",
-  //     employeeName: "Alice Johnson",
-  //     employeeId: "EMP001",
-  //     date: "2024-03-15",
-  //     originalClockOut: "6:00 PM",
-  //     requestedClockIn: "9:00 AM",
-  //     reason: "Forgot to clock in due to urgent meeting",
-  //     type: "Missed Clock In",
-  //     status: "pending",
-  //     appliedDate: "2024-03-15",
-  //   },
-  //   {
-  //     id: "AR002",
-  //     employeeName: "Bob Smith",
-  //     employeeId: "EMP002",
-  //     date: "2024-03-14",
-  //     originalClockIn: "10:30 AM",
-  //     originalClockOut: "6:00 PM",
-  //     requestedClockIn: "9:00 AM",
-  //     requestedClockOut: "6:00 PM",
-  //     reason: "System recorded wrong time due to network issue",
-  //     type: "Wrong Time Entry",
-  //     status: "pending",
-  //     appliedDate: "2024-03-14",
-  //   },
-  //   {
-  //     id: "AR003",
-  //     employeeName: "Carol Davis",
-  //     employeeId: "EMP003",
-  //     date: "2024-03-13",
-  //     originalClockIn: "9:00 AM",
-  //     requestedClockOut: "6:30 PM",
-  //     reason: "Emergency call, forgot to clock out",
-  //     type: "Missed Clock Out",
-  //     status: "approved",
-  //     appliedDate: "2024-03-13",
-  //   },
-  //   {
-  //     id: "AR004",
-  //     employeeName: "David Wilson",
-  //     employeeId: "EMP004",
-  //     date: "2024-03-12",
-  //     originalClockIn: "9:00 AM",
-  //     originalClockOut: "4:00 PM",
-  //     requestedClockOut: "6:00 PM",
-  //     reason: "System malfunction during clock out",
-  //     type: "System Error",
-  //     status: "rejected",
-  //     appliedDate: "2024-03-12",
-  //   },
-  //   {
-  //     id: "AR005",
-  //     employeeName: "Eva Brown",
-  //     employeeId: "EMP005",
-  //     date: "2024-03-11",
-  //     originalClockIn: "9:30 AM",
-  //     requestedClockIn: "9:00 AM",
-  //     reason: "Traffic delay, arrived late but worked extra hours",
-  //     type: "Late Arrival",
-  //     status: "pending",
-  //     appliedDate: "2024-03-11",
-  //   },
-  // ]
 
   const emp = authApi.getUser();
   useEffect(() => {
@@ -283,12 +216,12 @@ export function AttendanceRequestsTab() {
 
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Approved":
+    switch (status.toLowerCase()) {
+      case "approved":
         return "bg-green-100 text-green-800 border-green-200"
-      case "Pending":
+      case "pending":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      case "Rejected":
+      case "rejected":
         return "bg-red-100 text-red-800 border-red-200"
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
