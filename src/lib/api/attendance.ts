@@ -249,7 +249,8 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
   },
 
 
-  async clockIn(empId: string, faceImage: Blob, shift: string) {
+  async clockIn(empId: string | number, faceImage: Blob, shift: string) {
+    console.log(`[GEO_DEBUG] clockIn called with empId="${empId}" (type: ${typeof empId})`);
     const date = new Date();
     const formattedDate = date.toLocaleDateString("en-IN", {
       day: "2-digit",
@@ -266,89 +267,79 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
     });
     console.log("Clock-in timestamp (IST):", `${formattedDate} ${formattedTime}`);
     try {
-      // (Optional) Location – keep for future (not used by backend right now)
-    let latitude = 19.1158577;
-    let longitude = 72.8934000;
+      let latitude: string | undefined;
+      let longitude: string | undefined;
 
+      // --- 1. Get User Geolocation (only for empId === '10002' for testing) ---
+      console.log(`[GEO_DEBUG] empId=${empId}, type=${typeof empId}, navigator.geolocation=${!!navigator.geolocation}`);
+      if (navigator.geolocation && empId == 10002) {
+        console.log("[GEO_DEBUG] Requesting geolocation for emp 10002...");
+        try {
+          // Create a promise to await the result of the asynchronous geolocation call.
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              timeout: 10000, // Increased timeout for better accuracy
+              enableHighAccuracy: true,
+            });
+          });
+          
+          // Format to 6 decimal places
+          latitude = position.coords.latitude.toFixed(6);
+          longitude = position.coords.longitude.toFixed(6);
+          const accuracy = position.coords.accuracy;
+          console.log(`[GEO_DEBUG] Location captured: lat=${latitude}, lon=${longitude}, accuracy=${accuracy}m`);
+          
+          if (accuracy > 30) {
+            alert(`Location accuracy is low (${Math.round(accuracy)}m). Please move closer to a window or retry for better accuracy.`);
+            return {
+              success: false,
+              action: "clock-in",
+              timestamp: `${formattedDate} ${formattedTime}`,
+              empId,
+              faceVerified: false,
+              error: `Location accuracy too low (${Math.round(accuracy)}m).`,
+            };
+          }
+        } catch (geoError) {
+          // Handle different types of geolocation errors.
+          let reason = "Could not get your location.";
 
-    // --- 1. Get User Geolocation ---
-    // Check if the geolocation API is available in the browser.
+          // Type guard to safely handle the 'unknown' type of geoError
+          if (geoError instanceof GeolocationPositionError) {
+            if (geoError.code === GeolocationPositionError.PERMISSION_DENIED) {
+              reason = "Location access was denied. Please enable it in your browser settings to clock in.";
+            } else if (geoError.code === GeolocationPositionError.POSITION_UNAVAILABLE) {
+              reason = "Location information is unavailable.";
+            } else if (geoError.code === GeolocationPositionError.TIMEOUT) {
+              reason = "The request to get user location timed out.";
+            }
+          } else if (geoError instanceof Error) {
+            // Handle other types of generic errors
+            reason = geoError.message;
+          }
 
-
-    // if (navigator.geolocation && empId === '10001') {
-    //   try {
-    //     // Create a promise to await the result of the asynchronous geolocation call.
-    //     // We explicitly type the Promise to resolve with GeolocationPosition.
-    //     const position = await new Promise < GeolocationPosition > ((resolve, reject) => {
-    //       navigator.geolocation.getCurrentPosition(resolve, reject, {
-    //         timeout: 10000, // Increased timeout for better accuracy
-    //         enableHighAccuracy: true,
-    //       });
-    //     });
-    //     latitude = position.coords.latitude;
-    //     longitude = position.coords.longitude;
-    //     const accuracy = position.coords.accuracy;
-    //     console.log(`Location captured: ${latitude}, ${longitude}, accuracy: ${accuracy}m`);
-    //     if (accuracy > 30) {
-    //       alert(`Location accuracy is low (${Math.round(accuracy)}m). Please move closer to a window or retry for better accuracy.`);
-    //       return {
-    //         success: false,
-    //         action: "clock-in",
-    //         timestamp: `${formattedDate} ${formattedTime}`,
-    //         empId,
-    //         faceVerified: false,
-    //         error: `Location accuracy too low (${Math.round(accuracy)}m).`,
-    //       };
-    //     }
-    //   } catch (geoError) {
-    //     // Handle different types of geolocation errors.
-    //     let reason = "Could not get your location.";
-
-    //     // Type guard to safely handle the 'unknown' type of geoError
-    //     if (geoError instanceof GeolocationPositionError) {
-    //         if (geoError.code === GeolocationPositionError.PERMISSION_DENIED) {
-    //             reason = "Location access was denied. Please enable it in your browser settings to clock in.";
-    //         } else if (geoError.code === GeolocationPositionError.POSITION_UNAVAILABLE) {
-    //             reason = "Location information is unavailable.";
-    //         } else if (geoError.code === GeolocationPositionError.TIMEOUT) {
-    //             reason = "The request to get user location timed out.";
-    //         }
-    //     } else if (geoError instanceof Error) {
-    //         // Handle other types of generic errors
-    //         reason = geoError.message;
-    //     }
-
-    //     console.warn("Geolocation error:", reason, geoError);
-    //     // Return a specific error if location fails, as it's required by the backend.
-    //     return {
-    //       success: false,
-    //       action: "clock-in",
-    //       timestamp: `${formattedDate} ${formattedTime}`,
-    //       empId,
-    //       faceVerified: false,
-    //       error: reason,
-    //     };
-    //   }
-    // } else {
-    //   // Handle the case where the browser does not support geolocation.
-    //   return {
-    //     success: false,
-    //     action: "clock-in",
-    //     timestamp: `${formattedDate} ${formattedTime}`,
-    //     empId,
-    //     faceVerified: false,
-    //     error: "Geolocation is not supported by your browser.",
-    //   };
-    // }
+          console.warn("Geolocation error:", reason, geoError);
+          // Return a specific error if location fails, as it's required by the backend.
+          return {
+            success: false,
+            action: "clock-in",
+            timestamp: `${formattedDate} ${formattedTime}`,
+            empId,
+            faceVerified: false,
+            error: reason,
+          };
+        }
+      }
 
       // IMPORTANT: backend expects keys "file" and "face_user_emp_id"
+      console.log("[GEO_DEBUG] Before FormData - latitude:", latitude, "longitude:", longitude);
       const formData = new FormData()
       formData.append("file", faceImage, "face-capture.jpg")
-      formData.append("face_user_emp_id", empId)
+      formData.append("face_user_emp_id", String(empId))
       formData.append("shift", shift)
-      formData.append("lat", latitude.toString());
-      formData.append("lon", longitude.toString());
-      console.log("[LOG] : Submitting clock-in with location:", latitude, longitude);
+      formData.append("lat", latitude || "0");
+      formData.append("lon", longitude || "0");
+      console.log("[GEO_DEBUG] FormData values - lat:", formData.get("lat"), "lon:", formData.get("lon"));
       // The backend doesn’t accept timestamp/lat/long yet; keep them commented for later use:
       // formData.append("timestamp", new Date().toISOString())
       // if (latitude && longitude) { formData.append("latitude", latitude); formData.append("longitude", longitude) }
