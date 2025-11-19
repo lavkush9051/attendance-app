@@ -270,15 +270,15 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
       let latitude: string | undefined;
       let longitude: string | undefined;
 
-      // --- 1. Get User Geolocation (only for empId === '10002' for testing) ---
+      // --- 1. Get User Geolocation for all employees ---
       console.log(`[GEO_DEBUG] empId=${empId}, type=${typeof empId}, navigator.geolocation=${!!navigator.geolocation}`);
-      if (navigator.geolocation && empId == 10002) {
-        console.log("[GEO_DEBUG] Requesting geolocation for emp 10002...");
+      if (navigator.geolocation) {
+        console.log(`[GEO_DEBUG] Requesting geolocation for emp ${empId}...`);
         try {
           // Create a promise to await the result of the asynchronous geolocation call.
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
-              timeout: 10000, // Increased timeout for better accuracy
+              timeout: 10000,
               enableHighAccuracy: true,
             });
           });
