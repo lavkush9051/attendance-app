@@ -32,8 +32,8 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: 640,
-          height: 480,
+          width: { ideal: 640 },
+          height: { ideal: 480 },
           facingMode: "user", // Front camera
         },
       })
@@ -63,11 +63,15 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
       const context = canvas.getContext("2d")
 
       if (context) {
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        context.drawImage(video, 0, 0)
+        // Optimize: Reduce resolution for faster upload (face recognition works fine with smaller images)
+        const maxWidth = 640;
+        const scale = Math.min(1, maxWidth / video.videoWidth);
+        canvas.width = video.videoWidth * scale
+        canvas.height = video.videoHeight * scale
+        context.drawImage(video, 0, 0, canvas.width, canvas.height)
 
-        const imageDataUrl = canvas.toDataURL("image/jpeg", 0.8)
+        // Reduce quality to 0.6 for faster upload (sufficient for face recognition)
+        const imageDataUrl = canvas.toDataURL("image/jpeg", 0.6)
         setCapturedImage(imageDataUrl)
         stopCamera()
       }
@@ -83,14 +87,21 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
     if (!capturedImage) return
 
     setIsLoading(true)
+    setError(null) // Clear previous errors
     try {
       // Get employee ID from localStorage or auth context
       const user = authApi.getUser();
       const empId = user.emp_id; // Fallback to 0 if not found
 
-      // Convert base64 to blob
-      const response = await fetch(capturedImage)
-      const blob = await response.blob()
+      // Convert base64 to blob (optimized)
+      const base64Data = capturedImage.split(',')[1];
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/jpeg' });
 
       const result = await attendanceApi.clockIn(empId, blob, shift)
 
@@ -107,7 +118,7 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
     } finally {
       setIsLoading(false)
     }
-  }, [capturedImage, onClose, onClockInSuccess])
+  }, [capturedImage, onClose, onClockInSuccess, shift])
 
   const handleClose = useCallback(() => {
     stopCamera()

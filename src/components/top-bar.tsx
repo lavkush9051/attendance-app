@@ -109,7 +109,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
             >
               <Clock className="h-4 w-4" />
-              <span className="hidden sm:inline">{loadingAction ? "Please wait..." : buttonLabel}</span>
+              <span>{loadingAction ? "Please wait..." : buttonLabel}</span>
             </Button>
 
             {/* <Button variant="ghost" size="icon" className="relative">

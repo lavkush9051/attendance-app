@@ -278,14 +278,17 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
           // Create a promise to await the result of the asynchronous geolocation call.
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
-              timeout: 10000,
-              enableHighAccuracy: true,
+              timeout: 5000,  // Reduced from 10000ms to 5000ms
+              enableHighAccuracy: false,  // Changed from true - faster but slightly less accurate
+              maximumAge: 30000  // Cache location for 30 seconds
             });
           });
           
           // Format to 6 decimal places
           latitude = position.coords.latitude.toFixed(6);
           longitude = position.coords.longitude.toFixed(6);
+          //latitude = 19.1158577.toFixed(7);
+          //longitude = 72.8934000.toFixed(7);
           const accuracy = position.coords.accuracy;
           console.log(`[GEO_DEBUG] Location captured: lat=${latitude}, lon=${longitude}, accuracy=${accuracy}m`);
           
