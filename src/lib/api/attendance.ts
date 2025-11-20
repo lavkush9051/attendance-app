@@ -279,7 +279,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
               timeout: 5000,  // Reduced from 10000ms to 5000ms
-              enableHighAccuracy: false,  // Changed from true - faster but slightly less accurate
+              enableHighAccuracy: true,  // Changed from true - faster but slightly less accurate
               maximumAge: 30000  // Cache location for 30 seconds
             });
           });
