@@ -106,6 +106,9 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
       const result = await attendanceApi.clockIn(empId, blob, shift)
 
       if (result.success) {
+        // Persist a lightweight flag so refresh retains Clock Out state even if attendance API has slight delay
+        const todayKey = new Date().toISOString().slice(0,10);
+        try { localStorage.setItem("clocked_in_date", todayKey); } catch {}
         alert(`Successfully ${result.action}! Time: ${result.timestamp}`)
         onClockInSuccess?.()
         onClose()

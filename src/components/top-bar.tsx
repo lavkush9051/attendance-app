@@ -36,13 +36,19 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     ;(async () => {
       const status = await attendanceApi.getTodayStatus(Number(empId))
       if (_mounted) {
-        // If clocked in but no clock out yet → show Clock Out
-        setIsClockedIn(!!status.clockedIn)
+        let clockInState = !!status.clockedIn
+        // Fallback: if API temporarily misses newly written record, rely on local flag
+        try {
+          const todayKey = new Date().toISOString().slice(0,10)
+          const stored = localStorage.getItem("clocked_in_date")
+          if (!clockInState && stored === todayKey) {
+            clockInState = true
+          }
+        } catch {}
+        setIsClockedIn(clockInState)
       }
     })()
-    return () => {
-      _mounted = false
-    }
+    return () => { _mounted = false }
   }, [empId])
 
   // 🔹 Button label depends on state
@@ -136,7 +142,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         isOpen={showFaceCapture}
         onClose={() => setShowFaceCapture(false)}
         onClockInSuccess={() => {
-          // flip to "Clock Out" once backend saved clock-in
           setIsClockedIn(true)
         }}
       />
