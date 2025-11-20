@@ -37,11 +37,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
       const status = await attendanceApi.getTodayStatus(Number(empId))
       if (_mounted) {
         let clockInState = !!status.clockedIn
-        // Fallback: if API temporarily misses newly written record, rely on local flag
+        // Fallback: if API temporarily misses newly written record, rely on employee-specific local flag
         try {
           const todayKey = new Date().toISOString().slice(0,10)
-          const stored = localStorage.getItem("clocked_in_date")
-          if (!clockInState && stored === todayKey) {
+          const storageKey = `clocked_in_${empId}_${todayKey}`
+          const stored = localStorage.getItem(storageKey)
+          if (!clockInState && stored === "true") {
             clockInState = true
           }
         } catch {}
@@ -72,6 +73,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     try {
       const res = await attendanceApi.clockOut(empId)
       if (res?.success) {
+        // Clear employee-specific localStorage flag on successful clock-out
+        try {
+          const todayKey = new Date().toISOString().slice(0,10)
+          const storageKey = `clocked_in_${empId}_${todayKey}`
+          localStorage.removeItem(storageKey)
+        } catch {}
         alert(`Clocked out at ${res.clockout_time || "now"}`)
         setIsClockedIn(false) // flip back to "Clock In"
       } else {
