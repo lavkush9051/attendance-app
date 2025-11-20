@@ -16,8 +16,8 @@ export function AdminPanel() {
   const stats = {
     pendingLeaveRequests: 12,
     pendingAttendanceRequests: 8,
-    totalEmployees: 156,
-    activeShifts: 3,
+    totalEmployees: 584,
+    activeShifts: 4,
   }
 
   return (
