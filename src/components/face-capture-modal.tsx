@@ -22,15 +22,18 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [askPermission, setAskPermission] = useState(false)
 
-  const shift = localStorage.getItem("user_shift") ? JSON.parse(localStorage.getItem("user_shift") || '{}').shift : 'GEN'; // Default to 'D' if not found
+  let shift = localStorage.getItem("user_shift") ? JSON.parse(localStorage.getItem("user_shift") || '{}').shift : 'GEN'; // Default to 'D' if not found
+  if(shift==="General"){
+    shift = "GEN";
+  }
   console.log("Using shift:", shift);
 
   const startCamera = useCallback(async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: 640,
-          height: 480,
+          width: { ideal: 640 },
+          height: { ideal: 480 },
           facingMode: "user", // Front camera
         },
       })
@@ -60,11 +63,15 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
       const context = canvas.getContext("2d")
 
       if (context) {
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        context.drawImage(video, 0, 0)
+        // Optimize: Reduce resolution for faster upload (face recognition works fine with smaller images)
+        const maxWidth = 640;
+        const scale = Math.min(1, maxWidth / video.videoWidth);
+        canvas.width = video.videoWidth * scale
+        canvas.height = video.videoHeight * scale
+        context.drawImage(video, 0, 0, canvas.width, canvas.height)
 
-        const imageDataUrl = canvas.toDataURL("image/jpeg", 0.8)
+        // Reduce quality to 0.6 for faster upload (sufficient for face recognition)
+        const imageDataUrl = canvas.toDataURL("image/jpeg", 0.6)
         setCapturedImage(imageDataUrl)
         stopCamera()
       }
@@ -80,18 +87,29 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
     if (!capturedImage) return
 
     setIsLoading(true)
+    setError(null) // Clear previous errors
     try {
       // Get employee ID from localStorage or auth context
       const user = authApi.getUser();
       const empId = user.emp_id; // Fallback to 0 if not found
 
-      // Convert base64 to blob
-      const response = await fetch(capturedImage)
-      const blob = await response.blob()
+      // Convert base64 to blob (optimized)
+      const base64Data = capturedImage.split(',')[1];
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/jpeg' });
 
       const result = await attendanceApi.clockIn(empId, blob, shift)
 
       if (result.success) {
+        // Persist employee-specific flag so refresh retains Clock Out state even if attendance API has slight delay
+        const todayKey = new Date().toISOString().slice(0,10);
+        const storageKey = `clocked_in_${empId}_${todayKey}`;
+        try { localStorage.setItem(storageKey, "true"); } catch {}
         alert(`Successfully ${result.action}! Time: ${result.timestamp}`)
         onClockInSuccess?.()
         onClose()
@@ -104,7 +122,7 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
     } finally {
       setIsLoading(false)
     }
-  }, [capturedImage, onClose, onClockInSuccess])
+  }, [capturedImage, onClose, onClockInSuccess, shift])
 
   const handleClose = useCallback(() => {
     stopCamera()
@@ -122,29 +140,56 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
   //   })
 
   
+  // if (isOpen && !askPermission) {
+  //   const userConfirmed = window.confirm("This app wants to access your camera. Do you want to allow?");
+  //   if (userConfirmed) {
+  //     startCamera();
+  //     setAskPermission(true);
+  //   } else {
+  //     console.log("Camera access denied by user");
+  //     stopCamera();
+  //     setAskPermission(false);
+  //   }
+    
+  // }
+
+
+  // useEffect(() => {
+  //   if (isOpen && !stream && !capturedImage && askPermission) {
+  //     startCamera()
+  //   }
+  //   // Stop camera when modal closes
+  //   return () => {
+  //     if (!isOpen) stopCamera()
+  //   }
+  // }, [isOpen, stream, capturedImage, startCamera, stopCamera])
+
+useEffect(() => {
   if (isOpen && !askPermission) {
-    const userConfirmed = window.confirm("This app wants to access your camera. Do you want to allow?");
+    const userConfirmed = window.confirm(
+      "This app wants to access your camera. Do you want to allow?"
+    );
+ 
     if (userConfirmed) {
       startCamera();
       setAskPermission(true);
     } else {
-      console.log("Camera access denied by user");
       stopCamera();
       setAskPermission(false);
+      onClose();  // CLOSE MODAL PROPERLY
     }
-    
   }
-
-
-  useEffect(() => {
-    if (isOpen && !stream && !capturedImage && askPermission) {
-      startCamera()
-    }
-    // Stop camera when modal closes
-    return () => {
-      if (!isOpen) stopCamera()
-    }
-  }, [isOpen, stream, capturedImage, startCamera, stopCamera])
+}, [isOpen, askPermission, startCamera, stopCamera, onClose]);
+ 
+useEffect(() => {
+  if (isOpen && askPermission && !stream && !capturedImage) {
+    startCamera();
+  }
+ 
+  return () => {
+    if (!isOpen) stopCamera();
+  };
+}, [isOpen, askPermission, stream, capturedImage, startCamera, stopCamera]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

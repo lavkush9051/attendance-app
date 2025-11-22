@@ -36,13 +36,20 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     ;(async () => {
       const status = await attendanceApi.getTodayStatus(Number(empId))
       if (_mounted) {
-        // If clocked in but no clock out yet → show Clock Out
-        setIsClockedIn(!!status.clockedIn)
+        let clockInState = !!status.clockedIn
+        // Fallback: if API temporarily misses newly written record, rely on employee-specific local flag
+        try {
+          const todayKey = new Date().toISOString().slice(0,10)
+          const storageKey = `clocked_in_${empId}_${todayKey}`
+          const stored = localStorage.getItem(storageKey)
+          if (!clockInState && stored === "true") {
+            clockInState = true
+          }
+        } catch {}
+        setIsClockedIn(clockInState)
       }
     })()
-    return () => {
-      _mounted = false
-    }
+    return () => { _mounted = false }
   }, [empId])
 
   // 🔹 Button label depends on state
@@ -66,6 +73,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     try {
       const res = await attendanceApi.clockOut(empId)
       if (res?.success) {
+        // Clear employee-specific localStorage flag on successful clock-out
+        try {
+          const todayKey = new Date().toISOString().slice(0,10)
+          const storageKey = `clocked_in_${empId}_${todayKey}`
+          localStorage.removeItem(storageKey)
+        } catch {}
         alert(`Clocked out at ${res.clockout_time || "now"}`)
         setIsClockedIn(false) // flip back to "Clock In"
       } else {
@@ -87,7 +100,18 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick}>
               <Menu className="h-6 w-6" />
             </Button>
-            <h1 className="ml-4 lg:ml-0 text-2xl font-semibold text-gray-900">Hi, {userName}</h1>
+            <h1
+              className="ml-4 lg:ml-0 text-xl sm:text-2xl font-semibold text-gray-900 flex items-center space-x-1"
+            >
+              <span>Hi,&nbsp;</span>
+              <span
+                className="block max-w-[140px] sm:max-w-[180px] lg:max-w-[220px] truncate"
+                title={userName}
+                aria-label={`User name ${userName}`}
+              >
+                {userName}
+              </span>
+            </h1>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -98,7 +122,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
             >
               <Clock className="h-4 w-4" />
-              <span className="hidden sm:inline">{loadingAction ? "Please wait..." : buttonLabel}</span>
+              <span>{loadingAction ? "Please wait..." : buttonLabel}</span>
             </Button>
 
             {/* <Button variant="ghost" size="icon" className="relative">
@@ -125,7 +149,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         isOpen={showFaceCapture}
         onClose={() => setShowFaceCapture(false)}
         onClockInSuccess={() => {
-          // flip to "Clock Out" once backend saved clock-in
           setIsClockedIn(true)
         }}
       />

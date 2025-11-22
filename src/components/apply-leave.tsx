@@ -151,7 +151,7 @@ export function ApplyLeave() {
 
       {/* Leave Balance Cards */}
       {!loading && !error && snapshot && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           {snapshot.types.map((row) => {
             const total = row.accrued
             const remaining = row.available
@@ -160,17 +160,17 @@ export function ApplyLeave() {
             const pct = total > 0 ? Math.min(100, Math.max(0, (remaining / total) * 100)) : 0
 
             return (
-              <Card key={row.type} className="relative overflow-hidden">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-900">{row.type}</h3>
+              <Card key={row.type} className="relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-shadow m-1 sm:m-0">
+                <CardContent className="p-3 sm:p-6">
+                  <div className="flex items-center justify-between mb-2 sm:mb-4">
+                    <h3 className="font-semibold text-gray-900 text-base sm:text-lg">{row.type}</h3>
                     <Calendar className="h-5 w-5 text-gray-400" />
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-end">
-                      <span className="text-2xl font-bold text-gray-900">{remaining}</span>
-                      <span className="text-sm text-gray-500">of {total}</span>
+                      <span className="text-lg sm:text-2xl font-bold text-gray-900">{remaining}</span>
+                      <span className="text-xs sm:text-sm text-gray-500">of {total}</span>
                     </div>
 
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -180,7 +180,7 @@ export function ApplyLeave() {
                       />
                     </div>
 
-                    <div className="text-xs text-gray-600 flex flex-col gap-1">
+                    <div className="text-[10px] sm:text-xs text-gray-600 flex flex-col gap-1">
                       <span>Used (approved): {used} day{used === 1 ? "" : "s"}</span>
                       <span>Pending (held): {pending} day{pending === 1 ? "" : "s"}</span>
                     </div>

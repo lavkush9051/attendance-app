@@ -1,82 +1,17 @@
-// import { Calendar, Clock, TrendingUp, UserCheck, Users } from "lucide-react"
-// import { Card, CardContent } from "@/components/ui/card"
 
-// export function StatsCards() {
-//   const stats = [
-//     {
-//       title: "Present Days",
-//       value: "22",
-//       subtitle: "This month",
-//       icon: UserCheck,
-//       color: "bg-green-100 text-green-600",
-//       bgColor: "bg-green-50",
-//     },
-//     {
-//       title: "Absent Days",
-//       value: "2",
-//       subtitle: "This month",
-//       icon: Users,
-//       color: "bg-red-100 text-red-600",
-//       bgColor: "bg-red-50",
-//     },
-//     {
-//       title: "Avg Working Hours",
-//       value: "8.5h",
-//       subtitle: "Daily average",
-//       icon: Clock,
-//       color: "bg-blue-100 text-blue-600",
-//       bgColor: "bg-blue-50",
-//     },
-//     {
-//       title: "Avg Late Mark",
-//       value: "15min",
-//       subtitle: "Daily average",
-//       icon: TrendingUp,
-//       color: "bg-orange-100 text-orange-600",
-//       bgColor: "bg-orange-50",
-//     },
-//     {
-//       title: "Current Shift",
-//       value: "Day Shift",
-//       subtitle: "9:00 AM - 6:00 PM",
-//       icon: Calendar,
-//       color: "bg-purple-100 text-purple-600",
-//       bgColor: "bg-purple-50",
-//     },
-//   ]
-
-//   return (
-//     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-//       {stats.map((stat, index) => {
-//         const Icon = stat.icon
-//         return (
-//           <Card key={index} className={`${stat.bgColor} border-0 shadow-sm hover:shadow-md transition-shadow`}>
-//             <CardContent className="p-6">
-//               <div className="flex items-center">
-//                 <div className={`p-2 rounded-lg ${stat.color}`}>
-//                   <Icon className="h-5 w-5" />
-//                 </div>
-//                 <div className="ml-4">
-//                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-//                   <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-//                   <p className="text-xs text-gray-500">{stat.subtitle}</p>
-//                 </div>
-//               </div>
-//             </CardContent>
-//           </Card>
-//         )
-//       })}
-//     </div>
-//   )
-// }
 import { useEffect, useState } from "react"
-import { Calendar, Clock, TrendingUp, UserCheck, Users } from "lucide-react"
+import { Calendar, Clock, TrendingUp, UserCheck, Users, LogIn, LogOut } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { attendanceApi } from "@/lib/api/attendance"  // Import your attendanceApi
 import { authApi } from "@/lib/api/auth"  // Import your authApi
 import { getUpdatedInitialShifts,getShiftForWeekoff } from "@/lib/shift-rotation"  // Import your shift rotation logic
+import type { DayAttendance } from "@/app/page"
 
-export function StatsCards() {
+interface StatsCardsProps {
+  todayAttendance?: DayAttendance | null
+}
+
+export function StatsCards({ todayAttendance }: StatsCardsProps) {
   // State to hold dynamic stats
   const emp = authApi.getUser()
   const today = new Date()
@@ -139,6 +74,17 @@ export function StatsCards() {
 
   // Now set the card array dynamically from fetched statsData
   const stats = [
+    // Today's Attendance - Always visible on mobile even if data missing
+    {
+      title: "Today",
+      value: todayAttendance?.clockIn || "-",
+      subtitle: todayAttendance?.clockOut || "-",
+      icon: LogIn,
+      color: "bg-cyan-100 text-cyan-600",
+      bgColor: "bg-cyan-50",
+      mobileOnly: true,
+      isTodayCard: true,
+    },
     {
       title: "Present Days",
       value: statsData.present,
@@ -182,22 +128,55 @@ export function StatsCards() {
   ]
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4">
       {stats.map((stat, index) => {
         const Icon = stat.icon
+        const isMobileOnly = 'mobileOnly' in stat && stat.mobileOnly
+        const isTodayCard = 'isTodayCard' in stat && stat.isTodayCard
+        
+        const weekoffDay = emp?.emp_weekoff || emp?.emp_week_off || "-"
         return (
-          <Card key={index} className={`${stat.bgColor} border-0 shadow-sm hover:shadow-md transition-shadow`}>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className={`p-2 rounded-lg ${stat.color}`}>
-                  <Icon className="h-5 w-5" />
+          <Card
+            key={index}
+            className={`${stat.bgColor} border-0 shadow-sm hover:shadow-md transition-shadow m-1 sm:m-0 ${isMobileOnly ? 'lg:hidden' : ''}`}
+          >
+            <CardContent className="p-3 sm:p-6 relative">
+              {stat.title === 'Current Shift' && (
+                <span className="absolute -bottom-2 center bg-white-200/80 text-purple-700 px-2 py-0.5 rounded-full text-[10px] font-medium shadow-sm pointer-events-none">
+                  Wkoff: {weekoffDay}
+                </span>
+              )}
+              {isTodayCard ? (
+                <div className="flex items-center space-x-2">
+                  <div className={`p-1.5 rounded-lg ${stat.color} flex-shrink-0`}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-medium text-gray-600 mb-1">{stat.title}</p>
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[11px] text-green-600 font-medium w-6">In:</span>
+                        <span className="text-xs font-bold text-gray-900">{stat.value}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[11px] text-red-600 font-medium w-6">Out:</span>
+                        <span className="text-xs font-bold text-gray-900">{stat.subtitle}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="ml-4">
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-xs text-gray-500">{stat.subtitle}</p>
+              ) : (
+                <div className="flex items-center">
+                  <div className={`p-2 rounded-lg ${stat.color}`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-lg font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-xs font-medium text-gray-600">{stat.title}</p>
+                    <p className="text-[10px] text-gray-500">{stat.subtitle}</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         )

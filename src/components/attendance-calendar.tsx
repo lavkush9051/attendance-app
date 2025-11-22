@@ -14,9 +14,10 @@ import { DayAttendance } from "@/app/page"
 
 interface AttendanceCalendarProps {
   onDateClick: (payload: { date: Date; attendance: DayAttendance }) => void
+  onAttendanceLoad?: (attendance: Record<number, DayAttendance>) => void
 }
 
-export function AttendanceCalendar({ onDateClick }: AttendanceCalendarProps) {
+export function AttendanceCalendar({ onDateClick, onAttendanceLoad }: AttendanceCalendarProps) {
 
   //login first
   // authApi.login(authApi.credentials).then(response => {
@@ -71,6 +72,7 @@ export function AttendanceCalendar({ onDateClick }: AttendanceCalendarProps) {
           })
         }
         setAttendance(byDay)
+        onAttendanceLoad?.(byDay)
       })
       .catch(() => setAttendance({}))
       .finally(() => setLoading(false))

@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation"
 import { X, Building2, Home, Calendar, Clock, FileText, Settings, LogOut, Camera } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { authApi } from "@/lib/api"
-//import myLogo from '../assests/my-logo.png';
-import myLogo from '../assests/ameisetech-favicon-192x192.png';
+import myLogo from '../assests/my-logo.png';
+// import myLogo from '../assests/ameisetech-favicon-192x192.png';
 
 
 interface MobileNavProps {
@@ -34,14 +34,14 @@ export function MobileNav({ isOpen, onClose, currentView, onViewChange }: Mobile
     { id: "dashboard", label: "Dashboard", icon: Home },
     { id: "apply-leave", label: "Apply Leave", icon: Calendar },
     { id: "regularize", label: "Regularize Attendance", icon: Clock },
-    { id: "leave-history", label: "Leave History", icon: FileText },
+    // { id: "leave-history", label: "Leave History", icon: FileText },
     { id: "settings", label: "Settings", icon: Settings },
     { id: "register-face-modal", label: "Register Face", icon: Camera },
 
 
   ]
   // 🔹 Only add Admin Panel if user is Manager
-  if (user_designation.toLowerCase() === "manager" || user_designation.toLowerCase() === "dy general manager") {
+  if (user_designation.toLowerCase() === "manager" || user_designation.toLowerCase() === "dy general manager" || user_designation.toLowerCase() === "senior manager") {
     menuItems.push({ id: "admin-panel", label: "Admin Panel", icon: Settings })
   }
 
@@ -56,10 +56,10 @@ export function MobileNav({ isOpen, onClose, currentView, onViewChange }: Mobile
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center">
             {/* <Building2 className="h-8 w-8 text-blue-600" /> */}
-            {/* <img src={myLogo.src} className="h-8 w-8" alt="My Logo" />
-            <span className="ml-2 text-xl font-semibold text-gray-900">JNPA</span> */}
-            <img src={myLogo.src} className="h-14 w-16" alt="My Logo" />
-            <span className="ml-2 text-xl font-semibold text-gray-900">AmeiseTech</span>
+            <img src={myLogo.src} className="h-8 w-8" alt="My Logo" />
+            <span className="ml-2 text-xl font-semibold text-gray-900">JNPA</span>
+            {/* <img src={myLogo.src} className="h-14 w-16" alt="My Logo" />
+            <span className="ml-2 text-xl font-semibold text-gray-900">AmeiseTech</span> */}
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-6 w-6" />

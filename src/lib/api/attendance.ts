@@ -119,6 +119,61 @@ export const attendanceApi = {
     }
   },
 
+async downloadAttendanceReport(emp_id: string, start: string, end: string): Promise<Blob> {
+    try {
+      const queryParams: { start_date: string; end_date: string; emp_id?: string } = {
+        start_date: start,
+        end_date: end,
+      }
+      if (emp_id && emp_id !== "all") {
+        queryParams.emp_id = emp_id
+      }
+
+      // 1. Call your new .getFile() method
+      const apiResponse = await apiClient.getFile(
+        "/reports/attendance/download",
+        queryParams
+      )
+
+      // 2. Your 'request' method returns the raw Response in the 'data' field
+      //    We must cast it from 'unknown' or 'any' to 'Response'
+      const response = apiResponse.data as Response
+
+      if (!response.ok) {
+        // Handle cases where the server returned an error (e.g., 404, 500)
+        throw new Error(`Download failed with status: ${response.status}`)
+      }
+
+      // 3. Convert the Response body to a Blob. This is the file!
+      const fileBlob = await response.blob()
+      return fileBlob
+
+    } catch (error) {
+      // ===== Safely log the error =====
+      console.error("Failed to download attendance report:", error)
+
+      // This logic is still good for catching errors
+      if (error && typeof error === "object" && "response" in error) {
+        const response = (error as { response?: { data?: unknown } }).response
+
+        if (response && response.data instanceof Blob) {
+          try {
+            const errorText = await response.data.text()
+            const errorJson = JSON.parse(errorText)
+            console.error("Server error (from blob):", errorJson)
+          } catch (e) {
+            console.error("Could not parse error response blob:", e)
+          }
+        } else if (response && response.data) {
+          console.error("Server error (from JSON):", response.data)
+        }
+      }
+      
+      throw error
+      // =====================================
+    }
+  },
+
   async postRegularizeAttendance(data: AttendanceRequest) {
     try {
       const formData = new FormData()
@@ -194,76 +249,100 @@ export const attendanceApi = {
   },
 
 
-  async clockIn(empId: string, faceImage: Blob, shift: string) {
+  async clockIn(empId: string | number, faceImage: Blob, shift: string) {
+    console.log(`[GEO_DEBUG] clockIn called with empId="${empId}" (type: ${typeof empId})`);
+    const date = new Date();
+    const formattedDate = date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      timeZone: "Asia/Kolkata",
+    });
+    const formattedTime = date.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZone: "Asia/Kolkata",
+    });
+    console.log("Clock-in timestamp (IST):", `${formattedDate} ${formattedTime}`);
     try {
-      // (Optional) Location – keep for future (not used by backend right now)
-    let latitude;
-    let longitude;
+      let latitude: string | undefined;
+      let longitude: string | undefined;
 
-    // --- 1. Get User Geolocation ---
-    // Check if the geolocation API is available in the browser.
-    if (navigator.geolocation) {
-      try {
-        // Create a promise to await the result of the asynchronous geolocation call.
-        // We explicitly type the Promise to resolve with GeolocationPosition.
-        const position = await new Promise < GeolocationPosition > ((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            timeout: 10000, // Increased timeout for better accuracy
-            enableHighAccuracy: true,
+      // --- 1. Get User Geolocation for all employees ---
+      console.log(`[GEO_DEBUG] empId=${empId}, type=${typeof empId}, navigator.geolocation=${!!navigator.geolocation}`);
+      if (navigator.geolocation) {
+        console.log(`[GEO_DEBUG] Requesting geolocation for emp ${empId}...`);
+        try {
+          // Create a promise to await the result of the asynchronous geolocation call.
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              timeout: 5000,  // Reduced from 10000ms to 5000ms
+              enableHighAccuracy: true,  // Changed from true - faster but slightly less accurate
+              maximumAge: 30000  // Cache location for 30 seconds
+            });
           });
-        });
-        latitude = position.coords.latitude;
-        longitude = position.coords.longitude;
-        console.log(`Location captured: ${latitude}, ${longitude}`);
-      } catch (geoError) {
-        // Handle different types of geolocation errors.
-        let reason = "Could not get your location.";
+          
+          // Format to 6 decimal places
+          latitude = position.coords.latitude.toFixed(6);
+          longitude = position.coords.longitude.toFixed(6);
+          //latitude = 19.1158577.toFixed(7);
+          //longitude = 72.8934000.toFixed(7);
+          const accuracy = position.coords.accuracy;
+          console.log(`[GEO_DEBUG] Location captured: lat=${latitude}, lon=${longitude}, accuracy=${accuracy}m`);
+          
+          if (accuracy > 30) {
+            alert(`Location accuracy is low (${Math.round(accuracy)}m). Please move closer to a window or retry for better accuracy.`);
+            return {
+              success: false,
+              action: "clock-in",
+              timestamp: `${formattedDate} ${formattedTime}`,
+              empId,
+              faceVerified: false,
+              error: `Location accuracy too low (${Math.round(accuracy)}m).`,
+            };
+          }
+        } catch (geoError) {
+          // Handle different types of geolocation errors.
+          let reason = "Could not get your location.";
 
-        // Type guard to safely handle the 'unknown' type of geoError
-        if (geoError instanceof GeolocationPositionError) {
+          // Type guard to safely handle the 'unknown' type of geoError
+          if (geoError instanceof GeolocationPositionError) {
             if (geoError.code === GeolocationPositionError.PERMISSION_DENIED) {
-                reason = "Location access was denied. Please enable it in your browser settings to clock in.";
+              reason = "Location access was denied. Please enable it in your browser settings to clock in.";
             } else if (geoError.code === GeolocationPositionError.POSITION_UNAVAILABLE) {
-                reason = "Location information is unavailable.";
+              reason = "Location information is unavailable.";
             } else if (geoError.code === GeolocationPositionError.TIMEOUT) {
-                reason = "The request to get user location timed out.";
+              reason = "The request to get user location timed out.";
             }
-        } else if (geoError instanceof Error) {
+          } else if (geoError instanceof Error) {
             // Handle other types of generic errors
             reason = geoError.message;
-        }
+          }
 
-        console.warn("Geolocation error:", reason, geoError);
-        // Return a specific error if location fails, as it's required by the backend.
-        return {
-          success: false,
-          action: "clock-in",
-          timestamp: new Date().toISOString(),
-          empId,
-          faceVerified: false,
-          error: reason,
-        };
+          console.warn("Geolocation error:", reason, geoError);
+          // Return a specific error if location fails, as it's required by the backend.
+          return {
+            success: false,
+            action: "clock-in",
+            timestamp: `${formattedDate} ${formattedTime}`,
+            empId,
+            faceVerified: false,
+            error: reason,
+          };
+        }
       }
-    } else {
-      // Handle the case where the browser does not support geolocation.
-      return {
-        success: false,
-        action: "clock-in",
-        timestamp: new Date().toISOString(),
-        empId,
-        faceVerified: false,
-        error: "Geolocation is not supported by your browser.",
-      };
-    }
 
       // IMPORTANT: backend expects keys "file" and "face_user_emp_id"
+      console.log("[GEO_DEBUG] Before FormData - latitude:", latitude, "longitude:", longitude);
       const formData = new FormData()
       formData.append("file", faceImage, "face-capture.jpg")
-      formData.append("face_user_emp_id", empId)
+      formData.append("face_user_emp_id", String(empId))
       formData.append("shift", shift)
-      formData.append("lat", latitude.toString());
-      formData.append("lon", longitude.toString());
-      console.log("[LOG] : Submitting clock-in with location:", latitude, longitude);
+      formData.append("lat", latitude || "0");
+      formData.append("lon", longitude || "0");
+      console.log("[GEO_DEBUG] FormData values - lat:", formData.get("lat"), "lon:", formData.get("lon"));
       // The backend doesn’t accept timestamp/lat/long yet; keep them commented for later use:
       // formData.append("timestamp", new Date().toISOString())
       // if (latitude && longitude) { formData.append("latitude", latitude); formData.append("longitude", longitude) }
@@ -279,7 +358,7 @@ export const attendanceApi = {
         return {
           success: true,
           action: "clock-in",                    // backend currently implements only clock-in
-          timestamp: new Date().toISOString(),   // we stamp client time for the UI
+          timestamp: `${formattedDate} ${formattedTime}`,   // we stamp client time for the UI
           empId,
           location: latitude && longitude ? `${latitude},${longitude}` : undefined,
           faceVerified: true,
@@ -288,7 +367,7 @@ export const attendanceApi = {
         return {
           success: false,
           action: "clock-in",
-          timestamp: new Date().toISOString(),
+          timestamp: `${formattedDate} ${formattedTime}`,
           empId,
           faceVerified: false,
           error: raw?.reason || "Verification failed",
@@ -299,7 +378,7 @@ export const attendanceApi = {
       return {
         success: false,
         action: "clock-in",
-        timestamp: new Date().toISOString(),
+        timestamp: `${formattedDate} ${formattedTime}`,
         empId,
         faceVerified: false,
         error: error instanceof Error ? error.message : "Unknown error occurred",
@@ -358,6 +437,16 @@ export const attendanceApi = {
       return await apiClient.put("/api/attendance-request/action", data)
     } catch (error) {
       console.error("Failed to action attendance request:", error)
+      throw error
+    }
+  },
+
+  async cancelRegularizationRequest(requestId: string | number) {
+    try {
+      const res = await apiClient.delete(`/api/attendance-regularization/${requestId}`)
+      return res.data
+    } catch (error) {
+      console.error(`Failed to cancel regularization request ${requestId}:`, error)
       throw error
     }
   },

@@ -51,6 +51,7 @@ export function LeaveRequestsTab() {
         : (response && typeof response === "object" && "data" in response && Array.isArray((response as any).data))
           ? (response as any).data
           : [];
+      console.log("Raw leave requests data from API:", data)
       const records: LeaveRequest[] = data.map((item: any) => ({
         id: item.id ?? "",
         employeeName: item.employee_name ?? "",

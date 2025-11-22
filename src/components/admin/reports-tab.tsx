@@ -9,15 +9,24 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { attendanceApi, employeeApi } from "@/lib/api"
 import { leaveApi } from "@/lib/api/leave"
 import { authApi } from "@/lib/api"
+import * as XLSX from "xlsx"
 
 // If you have a shadcn Input component, import it; if not, plain <input type="date" /> works.
 import { Input } from "@/components/ui/input"
-
 type Employee = {
   id: string
   emp_id: string
   name: string
 }
+
+// Helper function to save data as Excel file
+const saveXlsx = (data: any[], sheetName: string, fileName: string) => {
+  const worksheet = XLSX.utils.json_to_sheet(data)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName)
+  XLSX.writeFile(workbook, fileName)
+}
+
 
 export function ReportsTab() {
   const [selectedEmployee, setSelectedEmployee] = useState("all")
@@ -84,88 +93,38 @@ export function ReportsTab() {
 
     try {
       setIsDownloading(true)
-
       const start_date = selectedFrom
       const end_date = selectedTo
-
-      const reportTypeName = reportType === "attendance" ? "Attendance" : "Leave"
       const isAll = selectedEmployee === "all"
       const currentUser = authApi.getUser()
       const adminEmpId = currentUser?.emp_id
-
-      // Helper to save xlsx
-      const saveXlsx = async (rows: any[], sheetName: string, fileName: string) => {
-        if (!rows.length) {
-          setDownloadMessage({ type: "error", message: "No records found for the selected period." })
-          setTimeout(() => setDownloadMessage(null), 3000)
-          return
-        }
-        const XLSX = await import("xlsx")
-        const ws = XLSX.utils.json_to_sheet(rows)
-        const wb = XLSX.utils.book_new()
-        XLSX.utils.book_append_sheet(wb, ws, sheetName)
-        XLSX.writeFile(wb, fileName)
-        setDownloadMessage({
-          type: "success",
-          message: `${reportTypeName} report (${start_date} → ${end_date}) downloaded successfully!`,
-        })
-        setTimeout(() => setDownloadMessage(null), 5000)
-      }
-
       if (reportType === "attendance") {
-        // ===== ATTENDANCE REPORT =====
-        const targetList = isAll
-          ? employees.filter((e) => e.id !== "all")
-          : employees.filter((e) => e.id === selectedEmployee)
-
-        const startObj = new Date(start_date)
-        const endObj = new Date(end_date)
-
-        const results = await Promise.allSettled(
-          targetList.map((emp) =>
-            attendanceApi
-              .getAttendance((emp as any).emp_id ?? emp.id, start_date, end_date)
-              .then((data) => ({ emp, data }))
-          )
-        )
-
-        const allRows: any[] = []
-        const stepDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
-
-        for (const res of results) {
-          if (res.status !== "fulfilled") continue
-          const { emp, data } = res.value
-
-          const presentByDate = new Map<string, { clockIn?: string; clockOut?: string; shift?: string }>()
-          if (Array.isArray(data?.attendance)) {
-            data.attendance.forEach((a: any) => {
-              presentByDate.set(a.date, { clockIn: a.clockIn, clockOut: a.clockOut, shift: a.shift})
-            })
-          }
-          //const shift = data?.shift || ""
-
-          for (let d = new Date(startObj); d <= endObj; d = stepDay(d)) {
-            const ymd = toYMDLocal(d)
-            const pres = presentByDate.get(ymd)
-            const status = pres ? "Present" : "Absent" // refine when adding holidays/leaves
-            allRows.push({
-              Emp_ID: (emp as any).emp_id ?? emp.id,
-              Employee_Name: emp.name ?? "",
-              Date: ymd,
-              Status: status,
-              Clock_In: pres?.clockIn ?? "-",
-              Clock_Out: pres?.clockOut ?? "-",
-              Shift: pres?.shift ?? "-",
-            })
-          }
+        // Use backend API to download attendance report
+        const empIdForReport = isAll ? "all" : selectedEmployee
+        try {
+          const blob = await attendanceApi.downloadAttendanceReport(empIdForReport, start_date, end_date)
+          // Download the file using browser
+          const employeeSlug = isAll
+            ? "All_Employees"
+            : (employees.find((e) => e.id === selectedEmployee)?.name || "Employee").replace(/\s+/g, "_")
+          const fileName = `Attendance_Report_${employeeSlug}_${start_date}_to_${end_date}.xlsx`
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement("a")
+          a.href = url
+          a.download = fileName
+          document.body.appendChild(a)
+          a.click()
+          a.remove()
+          window.URL.revokeObjectURL(url)
+          setDownloadMessage({
+            type: "success",
+            message: `Attendance report (${start_date} → ${end_date}) downloaded successfully!`,
+          })
+          setTimeout(() => setDownloadMessage(null), 5000)
+        } catch (err) {
+          setDownloadMessage({ type: "error", message: "Failed to download attendance report." })
+          setTimeout(() => setDownloadMessage(null), 3000)
         }
-
-        const employeeSlug = isAll
-          ? "All_Employees"
-          : (employees.find((e) => e.id === selectedEmployee)?.name || "Employee").replace(/\s+/g, "_")
-        const fileName = `Attendance_Report_${employeeSlug}_${start_date}_to_${end_date}.xlsx`
-
-        await saveXlsx(allRows, "Attendance", fileName)
       } else {
         // ===== LEAVE REPORT =====
         const isAllMode = isAll

@@ -142,18 +142,28 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
   }
 
   
-  // ✅ Action logic: Buttons visible until 11:59 PM before start date, unless rejected
+  // ✅ Action logic:
+  // - Default: visible until 11:59 PM before start date
+  // - Exception: if leave type is Medical Leave, allow actions even for past dates
   const canTakeAction = () => {
+    const isMedical = (leave.type || "").trim().toLowerCase() === "medical leave"
+
+    // hide if rejected or cancelled regardless of type
+    if (leave.status === "rejected") return false
+    if (leave.status === "cancelled") return false
+
+    if (isMedical) {
+      // Medical Leave: allow action beyond cutoff as requested
+      return true
+    }
+
+    // Non-medical: apply cutoff rule
     const start = new Date(leave.startDate)
     const cutoff = new Date(start)
     cutoff.setDate(cutoff.getDate() - 1)
     cutoff.setHours(23, 59, 59, 999)
 
     const now = new Date()
-
-    // hide if rejected OR cutoff time passed
-    if (leave.status === "rejected") return false
-    if (leave.status === "cancelled") return false
     return now <= cutoff
   }
 
@@ -163,13 +173,15 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
     //const actor = leave.status === "pending" ? "L1 Manager" : "L2 Manager"
     const actor = authApi.getUser().emp_id
     const trimmed = remarks.trim()
-    return `${actor} (${action}) - ${trimmed}`
+    //return `${actor} (${action}) - ${trimmed}`
+    return `${trimmed}`
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader className="flex items-start justify-between">
+        {/* className="flex items-start justify-between" */}
+        <CardHeader > 
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-xl">Leave Application Details</CardTitle>

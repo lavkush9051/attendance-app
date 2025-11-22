@@ -16,8 +16,8 @@ export function AdminPanel() {
   const stats = {
     pendingLeaveRequests: 12,
     pendingAttendanceRequests: 8,
-    totalEmployees: 156,
-    activeShifts: 3,
+    totalEmployees: 584,
+    activeShifts: 4,
   }
 
   return (
@@ -32,58 +32,58 @@ export function AdminPanel() {
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-yellow-50 border-yellow-200">
-          <CardContent className="p-4">
+      <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+        <Card className="bg-yellow-50 border-yellow-200 border-0 shadow-sm hover:shadow-md transition-shadow m-1 sm:m-0">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-yellow-100 rounded-lg">
                 <Calendar className="h-5 w-5 text-yellow-600" />
               </div>
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{stats.pendingLeaveRequests}</p>
-                <p className="text-sm font-medium text-gray-600">Pending Leave Requests</p>
+              <div className="ml-2">
+                <p className="text-lg font-bold text-gray-900">{stats.pendingLeaveRequests}</p>
+                <p className="text-xs font-medium text-gray-600">Pending Leave Requests</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-orange-50 border-orange-200">
-          <CardContent className="p-4">
+        <Card className="bg-orange-50 border-orange-200 border-0 shadow-sm hover:shadow-md transition-shadow m-1 sm:m-0">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-orange-100 rounded-lg">
                 <Clock className="h-5 w-5 text-orange-600" />
               </div>
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{stats.pendingAttendanceRequests}</p>
-                <p className="text-sm font-medium text-gray-600">Pending Attendance Requests</p>
+              <div className="ml-2">
+                <p className="text-lg font-bold text-gray-900">{stats.pendingAttendanceRequests}</p>
+                <p className="text-xs font-medium text-gray-600">Pending Attendance Requests</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
+        <Card className="bg-blue-50 border-blue-200 border-0 shadow-sm hover:shadow-md transition-shadow m-1 sm:m-0">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <Users className="h-5 w-5 text-blue-600" />
               </div>
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{stats.totalEmployees}</p>
-                <p className="text-sm font-medium text-gray-600">Total Employees</p>
+              <div className="ml-2">
+                <p className="text-lg font-bold text-gray-900">{stats.totalEmployees}</p>
+                <p className="text-xs font-medium text-gray-600">Total Employees</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-4">
+        <Card className="bg-green-50 border-green-200 border-0 shadow-sm hover:shadow-md transition-shadow m-1 sm:m-0">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
                 <FileText className="h-5 w-5 text-green-600" />
               </div>
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{stats.activeShifts}</p>
-                <p className="text-sm font-medium text-gray-600">Active Shifts</p>
+              <div className="ml-2">
+                <p className="text-lg font-bold text-gray-900">{stats.activeShifts}</p>
+                <p className="text-xs font-medium text-gray-600">Active Shifts</p>
               </div>
             </div>
           </CardContent>
@@ -95,7 +95,7 @@ export function AdminPanel() {
         <CardContent className="p-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="border-b border-gray-200 px-6 pt-6">
-              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-12">
+              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-16">
                 <TabsTrigger value="leave-requests" className="flex items-center space-x-2">
                   <Calendar className="h-4 w-4" />
                   <span className="hidden sm:inline">Leave Requests</span>
@@ -106,11 +106,11 @@ export function AdminPanel() {
                   <span className="hidden sm:inline">Attendance Requests</span>
                   <span className="sm:hidden">Attendance</span>
                 </TabsTrigger>
-                {/* <TabsTrigger value="shift-management" className="flex items-center space-x-2">
+                <TabsTrigger value="shift-management" className="flex items-center space-x-2">
                   <Users className="h-4 w-4" />
                   <span className="hidden sm:inline">Shift Management</span>
                   <span className="sm:hidden">Shifts</span>
-                </TabsTrigger> */}
+                </TabsTrigger>
                 <TabsTrigger value="reports" className="flex items-center space-x-2">
                   <FileText className="h-4 w-4" />
                   <span className="hidden sm:inline">Reports</span>
