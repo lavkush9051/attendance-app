@@ -4,7 +4,7 @@ import { Calendar, Clock, TrendingUp, UserCheck, Users, LogIn, LogOut } from "lu
 import { Card, CardContent } from "@/components/ui/card"
 import { attendanceApi } from "@/lib/api/attendance"  // Import your attendanceApi
 import { authApi } from "@/lib/api/auth"  // Import your authApi
-import { getUpdatedInitialShifts,getShiftForWeekoff } from "@/lib/shift-rotation"  // Import your shift rotation logic
+import { getUpdatedInitialShifts, getShiftForWeekoff } from "@/lib/shift-rotation"  // Import your shift rotation logic
 import type { DayAttendance } from "@/app/page"
 
 interface StatsCardsProps {
@@ -15,7 +15,7 @@ export function StatsCards({ todayAttendance }: StatsCardsProps) {
   // State to hold dynamic stats
   const emp = authApi.getUser()
   const today = new Date()
-  const updatedInitialShifts = getUpdatedInitialShifts(today.toISOString().slice(0,10))
+  const updatedInitialShifts = getUpdatedInitialShifts(today.toISOString().slice(0, 10))
   const { shift, shiftTime } = getShiftForWeekoff(emp?.emp_weekoff || emp?.emp_week_off || "General", updatedInitialShifts, today)
   console.log("Today Shift:", shift)
   localStorage.setItem("user_shift", JSON.stringify({
@@ -71,12 +71,18 @@ export function StatsCards({ todayAttendance }: StatsCardsProps) {
       })
     })
   }, [])
+  const formattedToday = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    day: "2-digit",
+    month: "short",
+    timeZone: "Asia/Kolkata"
+  })
 
   // Now set the card array dynamically from fetched statsData
   const stats = [
     // Today's Attendance - Always visible on mobile even if data missing
     {
-      title: "Today",
+      title:`Today, ${formattedToday}`,
       value: todayAttendance?.clockIn || "-",
       subtitle: todayAttendance?.clockOut || "-",
       icon: LogIn,
@@ -133,7 +139,7 @@ export function StatsCards({ todayAttendance }: StatsCardsProps) {
         const Icon = stat.icon
         const isMobileOnly = 'mobileOnly' in stat && stat.mobileOnly
         const isTodayCard = 'isTodayCard' in stat && stat.isTodayCard
-        
+
         const weekoffDay = emp?.emp_weekoff || emp?.emp_week_off || "-"
         return (
           <Card
