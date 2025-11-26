@@ -88,11 +88,11 @@ export function ApplyLeave() {
             available: (raw.half_pay_leave ?? 0) - (raw.half_pay_leave_held ?? 0) - (raw.half_pay_leave_committed ?? 0),
           },
           {
-            type: "Medical",
+            type: "Commuted",
             accrued: raw.medical_leave ?? 0,
             held: raw.medical_leave_held ?? 0,
             committed: raw.medical_leave_committed ?? 0,
-            available: (raw.medical_leave ?? 0) - (raw.medical_leave_held ?? 0) - (raw.medical_leave_committed ?? 0),
+            available: 0,//(raw.medical_leave ?? 0) - (raw.medical_leave_held ?? 0) - (raw.medical_leave_committed ?? 0),
           },
         ]
         const totals = {
@@ -168,21 +168,55 @@ export function ApplyLeave() {
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex justify-between items-end">
-                      <span className="text-lg sm:text-2xl font-bold text-gray-900">{remaining}</span>
+                    {/* <div className="flex justify-between items-end">
+                      <span className="text-lg sm:text-2xl font-bold text-gray-900">{remaining}
+                        <span className="ml-1 text-sm text-gray-600">
+                          [Current Balance]
+                        </span>
+                      </span>
                       <span className="text-xs sm:text-sm text-gray-500">of {total}</span>
-                    </div>
+                    </div> */}
+                    {row.type !== "Commuted" ? (
+                      <div className="flex justify-between items-end">
+                        <span className="flex items-center whitespace-nowrap text-lg sm:text-2xl font-bold text-gray-900">
+                          {remaining}
+                          <span className="ml-1 text-[10px] sm:text-xs text-gray-600 whitespace-nowrap">
+                            [Current Balance]
+                          </span>
+                        </span>
+                        <span className="text-xs sm:text-sm text-gray-500">of {total}</span>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-end">
+                        <span className="text-lg sm:text-xl font-bold text-gray-900">
+                          Taken: {row.committed} days
+                        </span>
+                      </div>
+                    )}
 
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+
+                    {/* <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
                         className="h-2 rounded-full transition-all duration-300 bg-blue-600"
                         style={{ width: `${pct}%` }}
                       />
-                    </div>
+                    </div> */}
+
+                    {row.type !== "Commuted" && (
+                      <>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full transition-all duration-300 bg-blue-600"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </>
+                    )}
+
 
                     <div className="text-[10px] sm:text-xs text-gray-600 flex flex-col gap-1">
-                      <span>Used (approved): {used} day{used === 1 ? "" : "s"}</span>
-                      <span>Pending (held): {pending} day{pending === 1 ? "" : "s"}</span>
+                      <span>Availed (approved): {used} day{used === 1 ? "" : "s"}</span>
+                      <span>In-process (held): {pending} day{pending === 1 ? "" : "s"}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -192,7 +226,7 @@ export function ApplyLeave() {
         </div>
       )}
 
-      
+
       <LeaveHistory />
 
       {/* Apply Leave Modal */}

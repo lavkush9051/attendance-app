@@ -259,11 +259,12 @@ export function LeaveHistory() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="Annual Leave">Annual Leave</SelectItem>
-                <SelectItem value="Sick Leave">Sick Leave</SelectItem>
-                <SelectItem value="Personal Leave">Personal Leave</SelectItem>
-                <SelectItem value="Emergency Leave">Emergency Leave</SelectItem>
-                <SelectItem value="Maternity Leave">Maternity Leave</SelectItem>
+                <SelectItem value="Casual Leave">Casual Leave</SelectItem>
+                <SelectItem value="Earned Leave">Earned Leave</SelectItem>
+                <SelectItem value="Half Pay Leave">Half Pay Leave</SelectItem>
+                <SelectItem value="Commuted Leave (Half Pay)">Commuted Leave</SelectItem>
+                <SelectItem value="Compensatory Off">Compensatory Off</SelectItem>
+                <SelectItem value="Opotional Holiday">Opotional Holiday</SelectItem>
               </SelectContent>
             </Select>
           </div>

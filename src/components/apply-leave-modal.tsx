@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { leaveApi } from "@/lib/api"
+// import { SearchableSelect } from "./SearchableSelect"// for-dropdown selection of approvers.
 
 interface ApplyLeaveModalProps {
   isOpen: boolean
@@ -19,7 +20,17 @@ interface ApplyLeaveModalProps {
 }
 
 export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
-  
+  // for-dropdown selection of approvers.
+  // const approvers = [
+  //   { id: "1", name: "Select Employee 1" },
+  //   { id: "2", name: "Select Employee 2" },
+  //   { id: "3", name: "Select Employee 3" },
+  // ]
+  // const approverOptions = approvers.map(a => ({
+  //   label: a.name,
+  //   value: a.id,
+  // }))
+
   const [formData, setFormData] = useState({
     leaveType: "",
     startDate: "",
@@ -27,7 +38,16 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
     reason: "",
     attachment: null as File | null,
     applied_date: "",
+    // l1Approver: "",
+    // l2Approver: "",
   })
+  // Load L1 & L2 names from localStorage
+  const user = JSON.parse(localStorage.getItem("user_data") || "{}");
+
+  const l1Name = user.emp_l1_name;
+  const l2Name = user.emp_l2_name;
+
+
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
@@ -36,10 +56,9 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
     "Casual Leave",
     "Earned Leave",
     "Half Pay Leave",
-    "Medical Leave",
-    "Parental Leave",
-    "Special Leave",
-    "Child Care Leave",
+    "Commuted Leave (Half Pay)",
+    "Compensatory Off",
+    "Optional Holiday",
   ]
 
   const validateForm = () => {
@@ -49,6 +68,8 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
     if (!formData.startDate) newErrors.startDate = "Start date is required"
     if (!formData.endDate) newErrors.endDate = "End date is required"
     if (!formData.reason.trim()) newErrors.reason = "Reason is required"
+    // if (!formData.l1Approver) newErrors.l1Approver = "Level 1 approver is required"
+    // if (!formData.l2Approver) newErrors.l2Approver = "Level 2 approver is required"
 
     if (formData.startDate && formData.endDate) {
       const start = new Date(formData.startDate)
@@ -58,14 +79,30 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
       }
     }
     // 🚨 Backdated validation rule
+    // 🚨 Backdated validation rule (updated)
     if (formData.startDate) {
       const today = new Date()
-      today.setHours(0, 0, 0, 0) // normalize
+      today.setHours(0, 0, 0, 0)
       const start = new Date(formData.startDate)
-      if (start < today && formData.leaveType !== "Medical Leave") {
-        newErrors.startDate = "Backdated leave is only allowed for Medical Leave"
+
+      const isHalfPay = formData.leaveType === "Half Pay Leave"
+      const isCommuted = formData.leaveType.includes("Commuted")
+
+      if (start < today && !(isHalfPay || isCommuted)) {
+        newErrors.startDate =
+          "Backdated leave is only allowed for Half Pay Leave or Commuted Leave"
       }
     }
+
+
+    // if (formData.startDate) {
+    //   const today = new Date()
+    //   today.setHours(0, 0, 0, 0) // normalize
+    //   const start = new Date(formData.startDate)
+    //   if (start < today && formData.leaveType !== "Medical Leave") {
+    //     newErrors.startDate = "Backdated leave is only allowed for Medical Leave"
+    //   }
+    // }
 
     // Attachment is OPTIONAL. If present, validate.
     if (formData.attachment) {
@@ -96,7 +133,12 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
       //   return
       // }
       await leaveApi.createLeaveRequest({
-        leave_type: formData.leaveType,
+        // leave_type: formData.leaveType,
+        leave_type:
+          formData.leaveType.includes("Commuted")
+            ? "Half Pay Leave"
+            : formData.leaveType,
+
         start_date: formData.startDate,
         end_date: formData.endDate,
         reason: formData.reason,
@@ -115,6 +157,8 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
           reason: "",
           attachment: null,
           applied_date: "",
+          // l1Approver: "",
+          // l2Approver: "",
         })
         setSubmitStatus("idle")
       }, 2000)
@@ -206,6 +250,61 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
                 />
                 {errors.endDate && <p className="text-sm text-red-500 mt-1">{errors.endDate}</p>}
               </div>
+              {/* L1 & L2 Reporting Officers (Auto-filled from localStorage) */}
+              <div className="col-span-2 grid grid-cols-2 gap-2">
+                <div>
+                  <Label>L1-Immediate RO</Label>
+                  <Input
+                    type="text"
+                    value={user?.emp_l1_name || ""}
+                    readOnly
+                    className="bg-gray-100 cursor-not-allowed text-[8px]"
+                  />
+                </div>
+
+                <div>
+                  <Label>L2-Next RO</Label>
+                  <Input
+                    type="text"
+                    value={user?.emp_l2_name || ""}
+                    readOnly
+                    className="bg-gray-100 cursor-not-allowed text-[8px]"
+                  />
+                </div>
+              </div>
+
+              {/* <div>
+                <Label>L1 Approver *</Label>
+                <SearchableSelect
+                  options={approverOptions}
+                  value={formData.l1Approver}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, l1Approver: value }))
+                  }
+                  placeholder="Select L1 Approver"
+                />
+
+                {errors.l1Approver && (
+                  <p className="text-sm text-red-500 mt-1">{errors.l1Approver}</p>
+                )}
+              </div> */}
+              {/* L2 Approver (after End Date) */}
+              {/* <div>
+                <Label>L2 Approver *</Label>
+
+                <SearchableSelect
+                  options={approverOptions}
+                  value={formData.l2Approver}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, l2Approver: value }))
+                  }
+                  placeholder="Select L2 Approver"
+                />
+
+                {errors.l2Approver && (
+                  <p className="text-sm text-red-500 mt-1">{errors.l2Approver}</p>
+                )}
+              </div> */}
             </div>
 
             <div>
@@ -222,7 +321,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
             </div>
 
             <div>
-              <Label htmlFor="attachment">Attachment (Optional)</Label>
+              <Label htmlFor="attachment">Attachment</Label>
               <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-gray-400 transition-colors">
                 <div className="space-y-1 text-center">
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />

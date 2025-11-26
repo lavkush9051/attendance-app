@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import { X, AlertCircle, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,6 +27,11 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
     reason: "",
     shift: "",
   })
+    // Load L1 & L2 names from localStorage
+  const user = JSON.parse(localStorage.getItem("user_data") || "{}");
+
+  const l1Name = user.emp_l1_name;
+  const l2Name = user.emp_l2_name;
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
@@ -36,15 +41,44 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
     { value: "missed-clock-out", label: "Missed Clock Out" },
     { value: "wrong-time", label: "Wrong Time Entry" },
     { value: "system-error", label: "System Error" },
+    { value: "Outdoor Duty", label: "Outdoor Duty" },
     { value: "other", label: "Other" },
   ]
 
   const shiftTypes = [
-    { value: "I", label: "I (07:00-15:30)" },
-    { value: "II", label: "II (15:00-23:30)" },
-    { value: "III", label: "III (23:00-07:30)" },
-    { value: "GEN", label: "General" },
+    { value: "I", label: "I (07:00-15:00)" },
+    { value: "II", label: "II (15:00-23:00)" },
+    { value: "III", label: "III (23:00-07:00)" },
+    { value: "GEN", label: "GEN (10:00-17:45)" },
   ]
+
+  // ✅ AUTO-FILL logic when Outdoor Duty + Shift selected
+  useEffect(() => {
+    if (formData.type === "Outdoor Duty" && formData.shift) {
+      let shiftTime = { in: "", out: "" }
+
+      switch (formData.shift) {
+        case "I":
+          shiftTime = { in: "07:00", out: "15:00" }
+          break
+        case "II":
+          shiftTime = { in: "15:00", out: "23:00" }
+          break
+        case "III":
+          shiftTime = { in: "23:00", out: "07:00" }
+          break
+        case "GEN":
+          shiftTime = { in: "10:00", out: "17:45" }
+          break
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        clockIn: shiftTime.in,
+        clockOut: shiftTime.out,
+      }))
+    }
+  }, [formData.type, formData.shift])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -182,6 +216,15 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
                 </Select>
                 {errors.type && <p className="text-sm text-red-500 mt-1">{errors.type}</p>}
               </div>
+               <div>
+                  <Label>L1-Immediate RO</Label>
+                  <Input
+                    type="text"
+                    value={user?.emp_l1_name || ""}
+                    readOnly
+                    className="bg-gray-100 cursor-not-allowed text-[11px]"
+                  />
+                </div>
               <div>
                 <Label htmlFor="shift">Shift Type *</Label>
                 <Select

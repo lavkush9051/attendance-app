@@ -5,9 +5,9 @@ const rotationStart = new Date("2025-07-01")
 
 // Shift time mapping
 const shiftTimes: Record<string, string> = {
-  "I Shift": "07:00 - 15:30",
-  "II Shift": "15:00 - 23:30",
-  "III Shift": "23:00 - 07:30",
+  "I Shift": "07:00 - 15:00",
+  "II Shift": "15:00 - 23:00",
+  "III Shift": "23:00 - 07:00",
   "Holiday": "--",
   "General": "10:00 - 17:45",
 }

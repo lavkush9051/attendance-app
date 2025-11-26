@@ -26,6 +26,8 @@ export interface LoginResponse {
     emp_weekoff : String
     emp_l1 : number
     emp_l2 : number
+    emp_l1_name: string
+    emp_l2_name: string
   }
   expires_in: number
 }
