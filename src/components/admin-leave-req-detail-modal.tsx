@@ -7,7 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { leaveApi, authApi } from "@/lib/api"
+import { leaveApi, authApi, employeeApi } from "@/lib/api"
+import { SearchableSelect } from "./SearchableSelect"// for-dropdown selection of approvers.
+import { Label } from "@/components/ui/label"
+import next from "next"
+
 
 interface LeaveRecord {
   id: string
@@ -25,6 +29,9 @@ interface LeaveRecord {
   empId?: string
   empName: string
   remarks?: string
+  next_reporting_officer?: string
+  l1_id?: string
+  l2_id?: string
 }
 
 interface LeaveDetailModalProps {
@@ -32,8 +39,8 @@ interface LeaveDetailModalProps {
   onClose: () => void
   leave: LeaveRecord | null
   onCancelLeave: () => void
-  onApprove?: (remarks: string) => void
-  onReject?: (remarks: string) => void
+  onApprove?: (remarks: string, next_reporting_officer: string) => void
+  onReject?: (remarks: string, next_reporting_officer: string) => void
 }
 
 type AttItem = {
@@ -44,11 +51,21 @@ type AttItem = {
   url: string
 }
 
+interface ApproverOption {
+  label: string
+  value: string
+}
+
 export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave, onApprove, onReject }: LeaveDetailModalProps) {
   const [remarks, setRemarks] = useState("")
   useEffect(() => { setRemarks("") }, [isOpen])
 
   const [attachments, setAttachments] = useState<AttItem[]>([])
+  const [approverOptions, setApproverOptions] = useState<ApproverOption[]>([])
+  const [selectedApprover, setSelectedApprover] = useState("");
+  const [approverError, setApproverError] = useState("");
+
+
 
   useEffect(() => {
     let mounted = true
@@ -70,6 +87,29 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
     return () => { mounted = false }
   }, [isOpen, leave?.id])  // use leave.id so it doesn't re-run unnecessarily
 
+  useEffect(() => {
+    if (!isOpen) return
+
+    const loadApprovers = async () => {
+      try {
+        const res = await employeeApi.get_emps_by_designations()
+        console.log("Approvers fetched:", res)
+        const employees = res?.data || []
+
+        const formatted = employees.map((emp: any) => ({
+          label: `${emp.name} (${emp.emp_id})`,
+          value: emp.emp_id.toString(),
+        }))
+
+        setApproverOptions(formatted)
+      } catch (error) {
+        console.error("Failed to fetch approvers", error)
+      }
+    }
+
+    loadApprovers()
+  }, [isOpen])
+
   const todaydate = new Date().toISOString().split("T")[0]
 
   if (!isOpen || !leave) return null
@@ -77,22 +117,22 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
   const getStatusColor = (status: string) => {
     switch (status) {
       case "approved": return "bg-green-100 text-green-800 border-green-200"
-      case "pending":  return "bg-yellow-100 text-yellow-800 border-yellow-200"
+      case "pending": return "bg-yellow-100 text-yellow-800 border-yellow-200"
       case "rejected": return "bg-red-100 text-red-800 border-red-200"
-      case "cancelled":return "bg-gray-100 text-gray-800 border-gray-200"
+      case "cancelled": return "bg-gray-100 text-gray-800 border-gray-200"
       case "l1 approved": return "bg-blue-100 text-blue-800 border-blue-200"
-      default:         return "bg-gray-100 text-gray-800 border-gray-200"
+      default: return "bg-gray-100 text-gray-800 border-gray-200"
     }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "approved": return <CheckCircle className="h-5 w-5 text-green-500" />
-      case "pending":  return <Clock className="h-5 w-5 text-yellow-500" />
+      case "pending": return <Clock className="h-5 w-5 text-yellow-500" />
       case "rejected": return <AlertCircle className="h-5 w-5 text-red-500" />
-      case "cancelled":return <X className="h-5 w-5 text-gray-500" />
+      case "cancelled": return <X className="h-5 w-5 text-gray-500" />
       case "l1 approved": return <CheckCircle className="h-5 w-5 text-blue-500" />
-      default:         return <Clock className="h-5 w-5 text-gray-500" />
+      default: return <Clock className="h-5 w-5 text-gray-500" />
     }
   }
 
@@ -102,34 +142,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
   const formatShortDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
 
-  // async function handleDownload(att: { id: number; url: string }) {
-  //   const base = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"
-  //   const cleaned = att.url.replace(/\/attachment\/\d+(\?|$)/, "/attachment$1")
-  //   const url = `${base}${cleaned}`
 
-  //   console.log("Downloading from URL:", url, "attr:", att )
-
-  //   // If you fixed CORS origins and need cookies:
-  //   // const resp = await fetch(url, { credentials: "include" })
-  //   // If you didn’t fix CORS and don’t need cookies:
-  //   const resp = await fetch(url, { credentials: "omit" })
-
-  //   if (!resp.ok) throw new Error("Failed to download attachment")
-
-  //   const cd = resp.headers.get("Content-Disposition") || ""
-  //   const m = /filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i.exec(cd)
-  //   const filename = m ? decodeURIComponent(m[1]) : "attachment"
-
-  //   const blob = await resp.blob()
-  //   const a = document.createElement("a")
-  //   a.href = URL.createObjectURL(blob)
-  //   a.download = filename
-  //   document.body.appendChild(a)
-  //   a.click()
-  //   a.remove()
-  //   URL.revokeObjectURL(a.href)
-  // }
-// admin-leave-req-detail-modal.tsx
   async function handleDownload(att: { id: number; url: string }) {
     console.log("Downloading from URL:", att.url, "attr:", att)
     try {
@@ -141,7 +154,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
     }
   }
 
-  
+
   // ✅ Action logic:
   // - Default: visible until 11:59 PM before start date
   // - Exception: if leave type is Medical Leave, allow actions even for past dates
@@ -169,6 +182,8 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
 
   const isActionable = canTakeAction()
   // IMPORTANT: Build only the *new* remark for this action (do NOT prepend existing trail)
+  leave.next_reporting_officer = selectedApprover;
+  console.log("Selected Approver ID:", selectedApprover);
   const buildNewRemark = (action: "Approved" | "Rejected") => {
     //const actor = leave.status === "pending" ? "L1 Manager" : "L2 Manager"
     const actor = authApi.getUser().emp_id
@@ -181,7 +196,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* className="flex items-start justify-between" */}
-        <CardHeader > 
+        <CardHeader >
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-xl">Leave Application Details</CardTitle>
@@ -267,6 +282,31 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
           </div>
 
           <Separator />
+          {leave.l2_id === "" && (
+            <div className="relative w-full min-w-[395px]">
+              <Label className="whitespace-nowrap block text-sm font-medium">
+                Next Reporting Officer
+              </Label>
+              <SearchableSelect
+                options={approverOptions}
+                value={selectedApprover}
+                onChange={(value) => {
+                  setSelectedApprover(value)
+                  setApproverError("")  // clear error on selection
+                  document.body.click()
+                }}
+                placeholder="Select Immediate Reporting Officer"
+              />
+              {!selectedApprover && (
+                <p className="text-xs text-gray-500 mt-1">Select the L2 Next-R.O who will receive this request after you.</p>
+              )}
+              {/* 🔥 Show error SAME STYLE as apply-leave-modal */}
+              {approverError && (
+                <p className="text-sm text-red-500 mt-1">{approverError}</p>
+              )}
+            </div>
+          )}
+
 
           {/* Reason */}
           <div>
@@ -333,6 +373,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
             </div>
           )}
 
+
           {/* Remark Input - always visible, optional, 150 chars */}
           <Separator />
           <div>
@@ -350,15 +391,20 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
           {/* Action Buttons (approve/reject) if actionable, otherwise Close for final states */}
           {isActionable ? (
             <div className="flex space-x-3 pt-4">
+
               {/* <Button className="flex-1 bg-green-600 hover:bg-green-700"
               onClick={() =>  onApprove(buildNewRemark("Approved"))}>
                 Approve
               </Button> */}
               <Button className="flex-1 bg-green-600 hover:bg-green-700"
                 onClick={() => {
+                  if (!selectedApprover) {
+                    setApproverError("Next Reporting Officer is required");
+                    return;
+                  }
                   const newRemark = buildNewRemark("Approved");
                   console.log("Sending remarks to backend:", newRemark); // ✅ yaha log
-                  onApprove?.(newRemark);
+                  onApprove?.(newRemark, selectedApprover);
                 }}>
                 Approve
               </Button>
@@ -371,7 +417,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
                 onClick={() => {
                   const newRemark = buildNewRemark("Rejected");
                   console.log("Sending remarks to backend:", newRemark);
-                  onReject?.(newRemark);
+                  onReject?.(newRemark, "");
                 }}>
                 Reject
               </Button>

@@ -45,9 +45,41 @@ export const employeeApi = {
   },
 
   /**
+ * GET /api/employees/designations
+ * Fetch list of unique employee designations
+ */
+async get_emps_by_designations() {
+  try {
+    return await apiClient.get<string[]>("/api/designations")
+  } catch (error) {
+    console.error("Failed to fetch employee designations:", error)
+    throw error
+  }
+},
+
+// async get_emps_by_designations() {
+//   try {
+//     const response = await apiClient.get<Employee[]>("/api/designations");
+
+//     // ✅ TEMPORARY TESTING
+//     const data = response.data;
+//     console.log("👉 DESIGNATION EMPLOYEES DATA:", data);
+
+//     return response;
+//   } catch (error) {
+//     console.error("❌ Failed to fetch employee designations:", error);
+//     throw error;
+//   }
+// },
+
+
+
+  /**
    * GET /api/employees/:emp_id
    * Get specific employee details
    */
+
+
   async getEmployeeById(empId: string) {
     try {
       return await apiClient.get<Employee>(`/api/employees/${empId}`)

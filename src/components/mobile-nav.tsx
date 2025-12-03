@@ -41,7 +41,16 @@ export function MobileNav({ isOpen, onClose, currentView, onViewChange }: Mobile
 
   ]
   // 🔹 Only add Admin Panel if user is Manager
-  if (user_designation.toLowerCase() === "manager" || user_designation.toLowerCase() === "dy general manager" || user_designation.toLowerCase() === "senior manager") {
+  if (user_designation.toLowerCase() === "manager" || user_designation.toLowerCase() === "dy general manager" || user_designation.toLowerCase() === "general manager (a) & secy" ||
+    user_designation.toLowerCase() === "senior manager" || user_designation.toLowerCase() === "general manager" || user_designation.toLowerCase() === "assistant manager" ||
+    user_designation.toLowerCase() === "deputy manager" || user_designation.toLowerCase() === "chief vigilance officer" || user_designation.toLowerCase() === "chairman" ||
+    user_designation.toLowerCase() === "dy. chairman" || user_designation.toLowerCase() === "chief general manager" || user_designation.toLowerCase() === "sr. manager p & ir" ||
+    user_designation.toLowerCase() === "senior manager (traffic)" || user_designation.toLowerCase() === "dy. manager (m&ee)" || user_designation.toLowerCase() === "deputy conservator" ||
+    user_designation.toLowerCase() === "labor welfare officer" || user_designation.toLowerCase() === "safety inspector" || user_designation.toLowerCase() === "harbour master" ||
+    user_designation.toLowerCase() === "dock master" || user_designation.toLowerCase() === "pilot" || user_designation.toLowerCase() === "dy. chief medical officer (sp)" ||
+    user_designation.toLowerCase() === "sr. medical officer (sp)" || user_designation.toLowerCase() === "senior medical officer (general duty)" ||
+    user_designation.toLowerCase() === "medical officer" || user_designation.toLowerCase() === "ps to chairman" || user_designation.toLowerCase() === "personal asst to hod" ||
+    user_designation.toLowerCase() === "pa to hod") {
     menuItems.push({ id: "admin-panel", label: "Admin Panel", icon: Settings })
   }
 

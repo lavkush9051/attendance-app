@@ -1,4 +1,5 @@
 "use client"
+import { useState } from "react"
 import { Popover,PopoverContent,PopoverTrigger,} from "@/components/ui/popover"
 import { Command,CommandEmpty,CommandGroup,CommandInput,CommandItem,CommandList, }from "@/components/ui/command"
 import { Check, ChevronsUpDown } from "lucide-react"
@@ -21,8 +22,15 @@ export function SearchableSelect({
   onChange: (value: string) => void
   placeholder: string
 }) {
+
+  const [open, setOpen] = useState(false)
+
+  const handleSelect = (val: string) => {
+    onChange(val)
+    setOpen(false) // ✅ close popover after selection
+  }
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -45,7 +53,7 @@ export function SearchableSelect({
                 <CommandItem
                   key={opt.value}
                   value={opt.label}
-                  onSelect={() => onChange(opt.value)}
+                 onSelect={() => handleSelect(opt.value)} // ✅ use handleSelect
                 >
                   <Check
                     className={cn(

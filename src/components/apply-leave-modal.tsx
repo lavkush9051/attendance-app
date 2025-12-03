@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { X, Upload, AlertCircle, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,8 +11,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { leaveApi } from "@/lib/api"
-// import { SearchableSelect } from "./SearchableSelect"// for-dropdown selection of approvers.
+import { leaveApi, employeeApi } from "@/lib/api"
+import { SearchableSelect } from "./SearchableSelect"// for-dropdown selection of approvers.
 
 interface ApplyLeaveModalProps {
   isOpen: boolean
@@ -20,16 +20,33 @@ interface ApplyLeaveModalProps {
 }
 
 export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
-  // for-dropdown selection of approvers.
-  // const approvers = [
-  //   { id: "1", name: "Select Employee 1" },
-  //   { id: "2", name: "Select Employee 2" },
-  //   { id: "3", name: "Select Employee 3" },
-  // ]
-  // const approverOptions = approvers.map(a => ({
-  //   label: a.name,
-  //   value: a.id,
-  // }))
+
+  interface ApproverOption {
+    label: string;
+    value: string;
+  }
+
+  const [approverOptions, setApproverOptions] = useState<ApproverOption[]>([]);
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const loadApprovers = async () => {
+      try {
+        const res = await employeeApi.get_emps_by_designations();
+        const employees = res?.data || [];
+        const formatted = employees.map((emp: any) => ({
+          label: `${emp.name} (${emp.emp_id})`,  // Updated as requested
+          value: emp.emp_id.toString(),
+        }));
+
+        setApproverOptions(formatted);
+      } catch (error) {
+        console.error("Failed to fetch approvers", error);
+      }
+    };
+
+    loadApprovers();
+  }, [isOpen]);
 
   const [formData, setFormData] = useState({
     leaveType: "",
@@ -38,8 +55,8 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
     reason: "",
     attachment: null as File | null,
     applied_date: "",
-    // l1Approver: "",
-    // l2Approver: "",
+    immediateReportingOfficer: "",
+  
   })
   // Load L1 & L2 names from localStorage
   const user = JSON.parse(localStorage.getItem("user_data") || "{}");
@@ -68,8 +85,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
     if (!formData.startDate) newErrors.startDate = "Start date is required"
     if (!formData.endDate) newErrors.endDate = "End date is required"
     if (!formData.reason.trim()) newErrors.reason = "Reason is required"
-    // if (!formData.l1Approver) newErrors.l1Approver = "Level 1 approver is required"
-    // if (!formData.l2Approver) newErrors.l2Approver = "Level 2 approver is required"
+    if (!formData.immediateReportingOfficer) newErrors.immediateReportingOfficer = "Immediate Reporting Officer is required"
 
     if (formData.startDate && formData.endDate) {
       const start = new Date(formData.startDate)
@@ -78,19 +94,32 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
         newErrors.endDate = "End date must be after start date"
       }
     }
-    // 🚨 Backdated validation rule
-    // 🚨 Backdated validation rule (updated)
+    
+    // Backdated validation rule (updated)
     if (formData.startDate) {
+
       const today = new Date()
       today.setHours(0, 0, 0, 0)
-      const start = new Date(formData.startDate)
 
+      const start = new Date(formData.startDate)
+      start.setHours(0, 0, 0, 0);
       const isHalfPay = formData.leaveType === "Half Pay Leave"
       const isCommuted = formData.leaveType.includes("Commuted")
+      const isCasualOrEarned = formData.leaveType === "Casual Leave" || formData.leaveType === "Earned Leave"
+      const isEligibleType = isHalfPay || isCommuted || isCasualOrEarned;
 
-      if (start < today && !(isHalfPay || isCommuted)) {
-        newErrors.startDate =
-          "Backdated leave is only allowed for Half Pay Leave or Commuted Leave"
+      const allowedPastDate = new Date(today);
+      allowedPastDate.setDate(today.getDate() - 10);
+
+      if (start < today){
+          if (!isEligibleType) {
+              newErrors.startDate =
+              "Backdated leave is only allowed for Half Pay Leave or Commuted Leave or CL & EL"
+          }
+          else if (start < allowedPastDate) {
+              newErrors.startDate =
+              "Backdated leave can only be applied up to 10 days in the past."
+          }
       }
     }
 
@@ -145,6 +174,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
         leave_req_emp_id: '',
         attachment: formData.attachment ?? undefined, // optional
         applied_date: new Date().toISOString().split('T')[0],
+        immediate_reporting_officer: formData.immediateReportingOfficer,
       })
       // No need to wait if not required, just proceed
       setSubmitStatus("success")
@@ -157,8 +187,8 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
           reason: "",
           attachment: null,
           applied_date: "",
-          // l1Approver: "",
-          // l2Approver: "",
+          immediateReportingOfficer: "",
+          // nextReportingOfficer: "",
         })
         setSubmitStatus("idle")
       }, 2000)
@@ -251,7 +281,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
                 {errors.endDate && <p className="text-sm text-red-500 mt-1">{errors.endDate}</p>}
               </div>
               {/* L1 & L2 Reporting Officers (Auto-filled from localStorage) */}
-              <div className="col-span-2 grid grid-cols-2 gap-2">
+              {/* <div className="col-span-2 grid grid-cols-2 gap-2">
                 <div>
                   <Label>L1-Immediate RO</Label>
                   <Input
@@ -271,23 +301,26 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
                     className="bg-gray-100 cursor-not-allowed text-[8px]"
                   />
                 </div>
-              </div>
+              </div> */}
 
-              {/* <div>
-                <Label>L1 Approver *</Label>
+              <div className="relative w-full min-w-[395px]">
+                <Label className="whitespace-nowrap block text-sm font-medium">
+                  Immediate Reporting Officer
+                </Label>
                 <SearchableSelect
                   options={approverOptions}
-                  value={formData.l1Approver}
-                  onChange={(value) =>
-                    setFormData((prev) => ({ ...prev, l1Approver: value }))
-                  }
-                  placeholder="Select L1 Approver"
+                  value={formData.immediateReportingOfficer}
+                  onChange={(value) => {
+                    setFormData((prev) => ({ ...prev, immediateReportingOfficer: value }))
+                    document.body.click()
+                  }}
+                  placeholder="Select Immediate Reporting Officer"
                 />
 
-                {errors.l1Approver && (
-                  <p className="text-sm text-red-500 mt-1">{errors.l1Approver}</p>
+                {errors.immediateReportingOfficer && (
+                  <p className="text-sm text-red-500 mt-1">{errors.immediateReportingOfficer}</p>
                 )}
-              </div> */}
+              </div>
               {/* L2 Approver (after End Date) */}
               {/* <div>
                 <Label>L2 Approver *</Label>
@@ -304,7 +337,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
                 {errors.l2Approver && (
                   <p className="text-sm text-red-500 mt-1">{errors.l2Approver}</p>
                 )}
-              </div> */}
+              </div>  */}
             </div>
 
             <div>
@@ -319,7 +352,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
               />
               {errors.reason && <p className="text-sm text-red-500 mt-1">{errors.reason}</p>}
             </div>
-
+             
             <div>
               <Label htmlFor="attachment">Attachment</Label>
               <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-gray-400 transition-colors">
