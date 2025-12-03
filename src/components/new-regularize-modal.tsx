@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState,useEffect } from "react"
+import { useState, useEffect } from "react"
 import { X, AlertCircle, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,14 +11,43 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { attendanceApi } from "@/lib/api"
+import { attendanceApi,employeeApi } from "@/lib/api"
+import { SearchableSelect } from "./SearchableSelect"// for-dropdown selection of approvers.
+
 
 interface NewRegularizeModalProps {
   isOpen: boolean
   onClose: () => void
 }
-
+  interface ApproverOption {
+    label: string;
+    value: string;
+  }
 export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps) {
+
+  const [approverOptions, setApproverOptions] = useState<ApproverOption[]>([]);
+    useEffect(() => {
+      if (!isOpen) return;
+  
+      const loadApprovers = async () => {
+        try {
+          const res = await employeeApi.get_emps_by_designations();
+          const employees = res?.data || [];
+          const formatted = employees.map((emp: any) => ({
+            label: `${emp.name} (${emp.emp_id})`,  // Updated as requested
+            value: emp.emp_id.toString(),
+          }));
+  
+          setApproverOptions(formatted);
+        } catch (error) {
+          console.error("Failed to fetch approvers", error);
+        }
+      };
+  
+      loadApprovers();
+    }, [isOpen]);
+  
+
   const [formData, setFormData] = useState({
     date: "",
     type: "",
@@ -26,8 +55,9 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
     clockOut: "",
     reason: "",
     shift: "",
+    immediateReportingOfficer: "",
   })
-    // Load L1 & L2 names from localStorage
+  // Load L1 & L2 names from localStorage
   const user = JSON.parse(localStorage.getItem("user_data") || "{}");
 
   const l1Name = user.emp_l1_name;
@@ -126,6 +156,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
         approved_date: "",
         rejection_reason: "",
         shift: formData.shift,
+        immediate_reporting_officer: formData.immediateReportingOfficer,
       })
       console.log("Regularization request submitted successfully", formData.clockIn, formData.clockOut, formData.reason, formData.type, formData.shift)
       setSubmitStatus("success")
@@ -138,6 +169,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
           clockOut: "",
           reason: "",
           shift: "",
+          immediateReportingOfficer: "",
         })
         setSubmitStatus("idle")
       }, 2000)
@@ -216,7 +248,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
                 </Select>
                 {errors.type && <p className="text-sm text-red-500 mt-1">{errors.type}</p>}
               </div>
-               <div>
+              {/* <div>
                   <Label>L1-Immediate RO</Label>
                   <Input
                     type="text"
@@ -224,7 +256,25 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
                     readOnly
                     className="bg-gray-100 cursor-not-allowed text-[11px]"
                   />
-                </div>
+                </div> */}
+              <div className="relative w-full min-w-[395px]">
+                <Label className="whitespace-nowrap block text-sm font-medium">
+                  Immediate Reporting Officer
+                </Label>
+                <SearchableSelect
+                  options={approverOptions}
+                  value={formData.immediateReportingOfficer}
+                  onChange={(value) => {
+                    setFormData((prev) => ({ ...prev, immediateReportingOfficer: value }))
+                    document.body.click()
+                  }}
+                  placeholder="Select Immediate Reporting Officer"
+                />
+
+                {errors.immediateReportingOfficer && (
+                  <p className="text-sm text-red-500 mt-1">{errors.immediateReportingOfficer}</p>
+                )}
+              </div>
               <div>
                 <Label htmlFor="shift">Shift Type *</Label>
                 <Select
