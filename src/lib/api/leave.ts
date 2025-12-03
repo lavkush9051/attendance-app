@@ -27,6 +27,8 @@ export interface LeaveRequest {
   l1_status?: "pending" | "approved" | "rejected"
   l2_status?: "pending" | "approved" | "rejected"
   attachment?: File | undefined
+  // l2_id?: string
+  // l1_id?: string
 }
 
 export interface CreateLeaveRequest {
@@ -37,6 +39,8 @@ export interface CreateLeaveRequest {
   reason: string
   attachment?: File | null
   applied_date: string
+  immediate_reporting_officer: string // New field added
+
 }
 
 export interface LeaveActionRequest {
@@ -45,6 +49,7 @@ export interface LeaveActionRequest {
   admin_id: number
   comments?: string
   remarks?: string
+  next_reporting_officer: string
 }
 
 export interface LeaveBalance {
@@ -153,6 +158,8 @@ export const leaveApi = {
       rejection_reason: item.rejection_reason ?? "",
       attachment: undefined,
       remarks: item.remarks ?? "",
+      l1_id: item.l1_id ?? "",
+      l2_id: item.l2_id ?? "",
     }))
   } catch (error) {
     console.error(`Failed to fetch leave requests for employee ${empId}:`, error)
@@ -204,6 +211,8 @@ export const leaveApi = {
       formData.append("leave_to_dt", data.end_date)
       formData.append("leave_reason", data.reason)
       formData.append("leave_applied_dt", data.applied_date)
+      // ✅ append new field
+      formData.append("immediate_reporting_officer", data.immediate_reporting_officer)
       // If there's an attachment, use FormData
       if (data.attachment) {
 
@@ -230,6 +239,7 @@ export const leaveApi = {
    */
   async actionLeaveRequest(data: LeaveActionRequest) {
     try {
+      console.log("Action Leave Request Data:", data);
       return await apiClient.put("/api/leave-request/action", data)
     } catch (error) {
       console.error("Failed to action leave request:", error)

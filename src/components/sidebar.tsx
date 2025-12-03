@@ -4,7 +4,7 @@ import myLogo from '../assests/my-logo.png';
 //import myLogo from '../assests/ameisetech-favicon-192x192.png';
 
 import { useRouter } from "next/navigation"
-import { Building2, Calendar, Clock, FileText, Home, Settings, LogOut, Camera  } from "lucide-react"
+import { Building2, Calendar, Clock, FileText, Home, Settings, LogOut, Camera } from "lucide-react"
 import { authApi } from "@/lib/api"
 
 interface SidebarProps {
@@ -35,7 +35,16 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
   ]
 
   // 🔹 Only add Admin Panel if user is Manager
-  if (user_designation.toLowerCase() === "manager" || user_designation.toLowerCase() === "dy general manager" || user_designation.toLowerCase() === "senior manager" ) {
+  if (user_designation.toLowerCase() === "manager" || user_designation.toLowerCase() === "dy general manager" || user_designation.toLowerCase() === "general manager (a) & secy" ||
+    user_designation.toLowerCase() === "senior manager" || user_designation.toLowerCase() === "general manager" || user_designation.toLowerCase() === "assistant manager" ||
+    user_designation.toLowerCase() === "deputy manager" || user_designation.toLowerCase() === "chief vigilance officer" || user_designation.toLowerCase() === "chairman" ||
+    user_designation.toLowerCase() === "dy. chairman" || user_designation.toLowerCase() === "chief general manager" || user_designation.toLowerCase() === "sr. manager p & ir" ||
+    user_designation.toLowerCase() === "senior manager (traffic)" || user_designation.toLowerCase() === "dy. manager (m&ee)" || user_designation.toLowerCase() === "deputy conservator" ||
+    user_designation.toLowerCase() === "labor welfare officer" || user_designation.toLowerCase() === "safety inspector" || user_designation.toLowerCase() === "harbour master" ||
+    user_designation.toLowerCase() === "dock master" || user_designation.toLowerCase() === "pilot" || user_designation.toLowerCase() === "dy. chief medical officer (sp)" ||
+    user_designation.toLowerCase() === "sr. medical officer (sp)" || user_designation.toLowerCase() === "senior medical officer (general duty)" ||
+    user_designation.toLowerCase() === "medical officer" || user_designation.toLowerCase() === "ps to chairman" || user_designation.toLowerCase() === "personal asst to hod" ||
+    user_designation.toLowerCase() === "pa to hod") {
     menuItems.push({ id: "admin-panel", label: "Admin Panel", icon: Settings })
   }
 
@@ -60,16 +69,14 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
               <button
                 key={item.id}
                 onClick={() => onViewChange(item.id)}
-                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md w-full transition-colors ${
-                  isActive
+                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md w-full transition-colors ${isActive
                     ? "bg-blue-100 text-blue-900"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                }`}
+                  }`}
               >
                 <Icon
-                  className={`mr-3 flex-shrink-0 h-5 w-5 ${
-                    isActive ? "text-blue-500" : "text-gray-400 group-hover:text-gray-500"
-                  }`}
+                  className={`mr-3 flex-shrink-0 h-5 w-5 ${isActive ? "text-blue-500" : "text-gray-400 group-hover:text-gray-500"
+                    }`}
                 />
                 {item.label}
               </button>

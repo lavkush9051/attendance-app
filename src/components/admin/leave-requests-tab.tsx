@@ -12,6 +12,7 @@ import { authApi, leaveApi } from "@/lib/api"
 import { LeaveDetailModal } from "../leave-detail-modal"
 import { AdminLeaveReqDetailModal } from "../admin-leave-req-detail-modal"
 import { set } from "date-fns"
+import next from "next"
 
 
 interface LeaveRequest {
@@ -27,6 +28,8 @@ interface LeaveRequest {
   appliedDate: string
   attachment?: string
   remarks?: string
+  l1_id?: string
+  l2_id?: string
 }
 
 export function LeaveRequestsTab() {
@@ -68,6 +71,8 @@ export function LeaveRequestsTab() {
         appliedDate: item.applied_date ?? "",
         attachment: item.attachment,
         remarks: item.remarks ?? "",
+        l1_id: item.l1_id ?? "",
+        l2_id: item.l2_id ?? "",
       }))
       console.log("Fetched all leave requests:", records)
       setIsLoading(true)
@@ -102,7 +107,7 @@ export function LeaveRequestsTab() {
   }, [leaveRequests, searchTerm, statusFilter, typeFilter])
 
   // Handle approve/reject action
-  const handleAction = async (requestId: string, action: "approve" | "reject", remarks?: string) => {
+  const handleAction = async (requestId: string, action: "approve" | "reject", remarks?: string, next_reporting_officer?:string) => {
     // prevent double-action on same row
     if (processingIds.has(requestId)) return
 
@@ -119,6 +124,7 @@ export function LeaveRequestsTab() {
         action,                                   // "approve" | "reject"
         admin_id: Number(emp.emp_id),             // acting admin (L1/L2)
         remarks: remarks || "", //action === "reject" ? "Rejected by admin" : "Approved by admin", // optional
+        next_reporting_officer: next_reporting_officer || "" // <-- add this field
       }
 
       const res = await leaveApi.actionLeaveRequest(payload)
@@ -474,14 +480,17 @@ export function LeaveRequestsTab() {
               attachment: selectedLeave.attachment,
               empName: selectedLeave.employeeName,
               remarks: selectedLeave.remarks || "",
+              next_reporting_officer: "", // <-- add this field
+              l1_id: selectedLeave.l1_id || "",
+              l2_id: selectedLeave.l2_id || "",
             }
             : null
         }
-        onApprove={(remarks?: string) =>
-          handleAction(selectedLeave?.id || "", "approve", remarks)
+        onApprove={(remarks?: string, next_reporting_officer?: string) =>
+          handleAction(selectedLeave?.id || "", "approve", remarks, next_reporting_officer)
         }
-        onReject={(remarks?: string) =>
-          handleAction(selectedLeave?.id || "", "reject", remarks)
+        onReject={(remarks?: string, next_reporting_officer?:string) =>
+          handleAction(selectedLeave?.id || "", "reject", remarks, next_reporting_officer)
         }
         onCancelLeave={() => setIsDetailModalOpen(false)} // ✅ cancel just closes modal
       />

@@ -40,20 +40,21 @@ export function LeaveDetailModal({ isOpen, onClose, leave, onCancelled }: LeaveD
 
   // // --- Cancel eligibility validation ---
   const isCancellable = () => {
-    const now = new Date()
-    const leaveStart = new Date(leave.startDate)
+    // const now = new Date()
+    // const leaveStart = new Date(leave.startDate)
 
-    // Deadline = today 11:59:59 PM
-    const deadline = new Date(now)
-    deadline.setHours(23, 59, 59, 999)
+    // // Deadline = today 11:59:59 PM
+    // const deadline = new Date(now)
+    // deadline.setHours(23, 59, 59, 999)
 
-    // condition: leave should start after today
-    // and cancellation must be before today's 11:59 PM
-    return leaveStart > now && now <= deadline
+    // // condition: leave should start after today
+    // // and cancellation must be before today's 11:59 PM
+    // return leaveStart > now && now <= deadline
+    return true
   }
   const isRevokeVisible = () => {
       const status = leave.status?.toLowerCase()
-      return status !== "cancelled" && status !== "rejected" && isCancellable()
+      return status !== "cancelled" && status !== "rejected" && isCancellable() && status === "pending"
 
   }
 
