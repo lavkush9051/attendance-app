@@ -39,7 +39,7 @@ export interface AttendanceRequest {
   approved_date?: string
   rejection_reason?: string
   shift?: string
-  immediate_reporting_officer?: string
+  
 
 }
 
@@ -186,7 +186,6 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
       formData.append("clock_in", data.requested_clock_in)
       formData.append("clock_out", data.requested_clock_out || "")
       formData.append("shift", data.shift || "")
-      formData.append("immediate_reporting_officer", data.immediate_reporting_officer || "")
       console.log("Posting regularization request:", (formData.get("emp_id"), formData.get("date"), formData.get("reason"), formData.get("clock_in"), formData.get("clock_out")));
       const response = await apiClient.postFormData("/api/attendance-regularization", formData)
       console.log("Regularization request submitted:", response.data)

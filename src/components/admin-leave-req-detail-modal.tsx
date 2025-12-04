@@ -282,7 +282,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
           </div>
 
           <Separator />
-          {leave.l2_id === "" && (
+          {leave.l2_id === ""  && (
             <div className="relative w-full min-w-[395px]">
               <Label className="whitespace-nowrap block text-sm font-medium">
                 Next Reporting Officer
@@ -398,7 +398,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
               </Button> */}
               <Button className="flex-1 bg-green-600 hover:bg-green-700"
                 onClick={() => {
-                  if (!selectedApprover) {
+                  if (!selectedApprover && leave.l2_id === "") {
                     setApproverError("Next Reporting Officer is required");
                     return;
                   }
