@@ -39,6 +39,7 @@ export interface AttendanceRequest {
   approved_date?: string
   rejection_reason?: string
   shift?: string
+  
 
 }
 

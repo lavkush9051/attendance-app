@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState,useEffect } from "react"
+import { useState, useEffect } from "react"
 import { X, AlertCircle, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,12 +13,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { attendanceApi } from "@/lib/api"
 
+
+
 interface NewRegularizeModalProps {
   isOpen: boolean
   onClose: () => void
 }
-
+  
 export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps) {
+
+  
+  
+
   const [formData, setFormData] = useState({
     date: "",
     type: "",
@@ -26,8 +32,9 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
     clockOut: "",
     reason: "",
     shift: "",
+   
   })
-    // Load L1 & L2 names from localStorage
+  // Load L1 & L2 names from localStorage
   const user = JSON.parse(localStorage.getItem("user_data") || "{}");
 
   const l1Name = user.emp_l1_name;
@@ -126,6 +133,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
         approved_date: "",
         rejection_reason: "",
         shift: formData.shift,
+        
       })
       console.log("Regularization request submitted successfully", formData.clockIn, formData.clockOut, formData.reason, formData.type, formData.shift)
       setSubmitStatus("success")
@@ -216,7 +224,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
                 </Select>
                 {errors.type && <p className="text-sm text-red-500 mt-1">{errors.type}</p>}
               </div>
-               <div>
+              <div>
                   <Label>L1-Immediate RO</Label>
                   <Input
                     type="text"
@@ -225,6 +233,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
                     className="bg-gray-100 cursor-not-allowed text-[11px]"
                   />
                 </div>
+    
               <div>
                 <Label htmlFor="shift">Shift Type *</Label>
                 <Select
