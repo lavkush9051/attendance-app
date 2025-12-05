@@ -68,6 +68,10 @@ export interface LeaveBalance {
   medical_leave: number
   medical_leave_held: number
   medical_leave_committed: number
+
+  commuted_leave: number
+  commuted_leave_held: number
+  commuted_leave_committed: number
 }
 
 function absoluteApiBase(): string {
@@ -283,6 +287,7 @@ async getLeaveBalance(empId: number | string): Promise<LeaveBalance> {
     // Backend snapshot endpoint
     const res = await apiClient.get("/api/leave-balance/snapshot", { emp_id: String(empId) })
     const payload: any = (res && typeof res === "object" && "data" in res) ? (res as any).data : res
+    console.log("Leave balance snapshot payload:", payload, "response:", res)
     // payload = { emp_id, types: [{type, accrued, held, committed, available}], totals: {...} }
 
     const init: LeaveBalance = {
@@ -290,6 +295,7 @@ async getLeaveBalance(empId: number | string): Promise<LeaveBalance> {
       earned_leave: 0, earned_leave_held: 0, earned_leave_committed: 0,
       half_pay_leave: 0, half_pay_leave_held: 0, half_pay_leave_committed: 0,
       medical_leave: 0, medical_leave_held: 0, medical_leave_committed: 0,
+      commuted_leave: 0, commuted_leave_held: 0, commuted_leave_committed: 0,
     }
 
     if (!payload?.types || !Array.isArray(payload.types)) return init
@@ -301,7 +307,7 @@ async getLeaveBalance(empId: number | string): Promise<LeaveBalance> {
       ;(init as any)[`${key}_held`] = Number(row.held ?? 0)
       ;(init as any)[`${key}_committed`] = Number(row.committed ?? 0)
     }
-
+    console.log("Normalized leave balance:", init)
     return init
   } catch (error) {
     console.error("Failed to fetch leave balance:", error)
@@ -450,6 +456,10 @@ const TYPE_TO_KEY: Record<string, keyof LeaveBalance | string> = {
   "Medical Leave": "medical_leave",
   "Medical": "medical_leave",
   "ML": "medical_leave",
+
+  "Commuted Leave": "commuted_leave",
+  "Commuted": "commuted_leave",
+  "CML": "commuted_leave",
 }
 
 function normalizeKey(typeLabel: string): string | null {

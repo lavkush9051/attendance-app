@@ -165,7 +165,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
         // leave_type: formData.leaveType,
         leave_type:
           formData.leaveType.includes("Commuted")
-            ? "Half Pay Leave"
+            ? "Commuted Leave"
             : formData.leaveType,
 
         start_date: formData.startDate,
