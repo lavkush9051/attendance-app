@@ -85,13 +85,13 @@ export function ApplyLeave() {
             accrued: raw.half_pay_leave ?? 0,
             held: raw.half_pay_leave_held ?? 0,
             committed: raw.half_pay_leave_committed ?? 0,
-            available: (raw.half_pay_leave ?? 0) - (raw.half_pay_leave_held ?? 0) - (raw.half_pay_leave_committed ?? 0),
+            available: (raw.half_pay_leave ?? 0) - (raw.half_pay_leave_held ?? 0) - (raw.half_pay_leave_committed ?? 0) -((raw.commuted_leave_held?? 0)* 2) - ((raw.commuted_leave_committed ?? 0)* 2),
           },
           {
             type: "Commuted",
-            accrued: raw.medical_leave ?? 0,
-            held: raw.medical_leave_held ?? 0,
-            committed: raw.medical_leave_committed ?? 0,
+            accrued: raw.commuted_leave ?? 0,
+            held: raw.commuted_leave_held ?? 0,
+            committed: raw.commuted_leave_committed ?? 0,
             available: 0,//(raw.medical_leave ?? 0) - (raw.medical_leave_held ?? 0) - (raw.medical_leave_committed ?? 0),
           },
         ]
@@ -118,6 +118,8 @@ export function ApplyLeave() {
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+
+  console.log("available.....", snapshot?.types.map(t => ({ type: t.type, available: t.available })))
 
   return (
     <div className="space-y-6">
