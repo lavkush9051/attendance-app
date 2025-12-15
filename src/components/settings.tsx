@@ -650,18 +650,18 @@ return (
             </div>
 
             {/* Row 3 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="managerL1">L1-Immediate Reporting officer</Label>
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
+              {/* <div> */}
+                {/* <Label htmlFor="managerL1">L1-Immediate Reporting officer</Label> */}
                 {/* <Input id="managerL1" value={emp?.emp_l1 ?? ""} readOnly className="text-gray-600" /> */}
-                <Input id="managerL1" value={`${emp?.emp_l1} - ${emp?.emp_l1_name}`} readOnly className="text-gray-600" />
-              </div>
-              <div>
-                <Label htmlFor="managerL2">L2-Next Reporting officer</Label>
+                {/* <Input id="managerL1" value={`${emp?.emp_l1} - ${emp?.emp_l1_name}`} readOnly className="text-gray-600" />
+              </div> */}
+              {/* <div> */}
+                {/* <Label htmlFor="managerL2">L2-Next Reporting officer</Label> */}
                 {/* <Input id="managerL2" value={emp?.emp_l2 ?? ""} readOnly className="text-gray-600" /> */}
-                <Input id="managerL2" value={`${emp?.emp_l2} - ${emp?.emp_l2_name}`} readOnly className="text-gray-600" />
-              </div>
-            </div>
+                {/* <Input id="managerL2" value={`${emp?.emp_l2} - ${emp?.emp_l2_name}`} readOnly className="text-gray-600" />
+              </div> */}
+            {/* </div> */}
 
             {/* Row 4 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
