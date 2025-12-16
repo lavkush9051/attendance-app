@@ -159,7 +159,8 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
   // - Default: visible until 11:59 PM before start date
   // - Exception: if leave type is Medical Leave, allow actions even for past dates
   const canTakeAction = () => {
-    const isMedical = (leave.type || "").trim().toLowerCase() === "medical leave"
+    const LeaveTypes = ["medical leave", "sick leave", "casual leave", "earned leave", "half pay leave", "commuted leave"];
+    const isMedical = LeaveTypes.includes((leave.type || "").trim().toLowerCase())
 
     // hide if rejected or cancelled regardless of type
     if (leave.status === "rejected") return false

@@ -1,3 +1,5 @@
+//attendance-calendar.tsx
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -9,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 import { authApi } from "@/lib/api/auth"
 import { attendanceApi, AttendanceApiResponse } from "@/lib/api/attendance"
+import { leaveApi } from "@/lib/api/leave"
 import { DayAttendance } from "@/app/page"
 
 
@@ -53,29 +56,68 @@ export function AttendanceCalendar({ onDateClick, onAttendanceLoad }: Attendance
     const start = new Date(year, month, 1)
     const end = new Date(year, month + 1, 0)
 
-    setLoading(true)
-    attendanceApi
-      .getAttendance(userId, getDateStr(start), getDateStr(end))
-      .then((data) => {
-        // Map attendance to day of month
-        console.log("Attendance data:", data)
-        const byDay: Record<number, DayAttendance> = {}
-        if (data && Array.isArray(data.attendance)) {
-          data.attendance.forEach((a: any) => {
-            const day = parseInt(a.date.split("-")[2], 10)
-            byDay[day] = {
-              status: a.clockIn === "-" ? "absent" : "present",
-              clockIn: a.clockIn,
-              clockOut: a.clockOut,
-              shift: a.shift || "Day",
+      setLoading(true)
+      ;(async () => {
+        try {
+          // Fetch attendance and approved leaves for the month in parallel
+          const [attResp, leaveResp] = await Promise.all([
+            attendanceApi.getAttendance(userId, getDateStr(start), getDateStr(end)),
+            leaveApi.getEmployeeLeaveRequests(String(userId), { status: "approved", start_date: getDateStr(start), end_date: getDateStr(end) })
+          ])
+
+          console.log("Attendance data:", attResp)
+          console.log("Leave data (approved):", leaveResp)
+          const byDay: Record<number, DayAttendance> = {}
+
+          // Map attendance to day of month
+          if (attResp && Array.isArray(attResp.attendance)) {
+            attResp.attendance.forEach((a: any) => {
+              const day = parseInt(a.date.split("-")[2], 10)
+              byDay[day] = {
+                status: a.clockIn === "-" ? "absent" : "present",
+                clockIn: a.clockIn,
+                clockOut: a.clockOut,
+                shift: a.shift || "Day",
+              }
+            })
+          }
+
+          // Map approved leave requests to days (override with 'leave' status)
+          if (Array.isArray(leaveResp) && leaveResp.length > 0) {
+            for (const lr of leaveResp) {
+              try {
+                const ls = new Date(lr.start_date)
+                const le = new Date(lr.end_date)
+
+                // Clamp to current month range
+                const from = ls < start ? start : ls
+                const to = le > end ? end : le
+
+                for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+                  const day = d.getDate()
+                  byDay[day] = {
+                    status: "leave",
+                    clockIn: "-",
+                    clockOut: "-",
+                    shift: "Day",
+                    leaveType: lr.leave_type_name || "Leave",
+                  } as DayAttendance
+                }
+              } catch (e) {
+                console.warn("Failed to process leave record:", lr, e)
+              }
             }
-          })
+          }
+
+          setAttendance(byDay)
+          onAttendanceLoad?.(byDay)
+        } catch (e) {
+          console.error("Failed to load attendance or leaves:", e)
+          setAttendance({})
+        } finally {
+          setLoading(false)
         }
-        setAttendance(byDay)
-        onAttendanceLoad?.(byDay)
-      })
-      .catch(() => setAttendance({}))
-      .finally(() => setLoading(false))
+      })()
   }, [currentDate, userId])
 
   // Use getAttendanceStatus(day) to pull from this new attendance object:

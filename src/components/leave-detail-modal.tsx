@@ -54,7 +54,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave, onCancelled }: LeaveD
   }
   const isRevokeVisible = () => {
       const status = leave.status?.toLowerCase()
-      return status !== "cancelled" && status !== "rejected" && isCancellable() && status === "pending"
+      return status !== "cancelled" && status !== "rejected" && isCancellable() && status === "pending" || status === "approved" || status === "l1 approved"
 
   }
 
