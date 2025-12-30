@@ -54,7 +54,7 @@ export function LeaveRequestsTab() {
         : (response && typeof response === "object" && "data" in response && Array.isArray((response as any).data))
           ? (response as any).data
           : [];
-      console.log("Raw leave requests data from API:", data)
+      //console.log("Raw leave requests data from API:", data)
       const records: LeaveRequest[] = data.map((item: any) => ({
         id: item.id ?? "",
         employeeName: item.employee_name ?? "",
@@ -74,7 +74,7 @@ export function LeaveRequestsTab() {
         l1_id: item.l1_id ?? "",
         l2_id: item.l2_id ?? "",
       }))
-      console.log("Fetched all leave requests:", records)
+      //console.log("Fetched all leave requests:", records)
       setIsLoading(true)
       // Simulate API delay
       //await new Promise((resolve) => setTimeout(resolve, 1000))

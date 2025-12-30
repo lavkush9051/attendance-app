@@ -64,7 +64,7 @@ export function ShiftManagementTab() {
           date: e.effective_date ?? e.date ?? new Date().toISOString().slice(0, 10),
         }))
 
-        console.log("Fetched employees:", data)
+        //console.log("Fetched employees:", data)
         setEmployees(data)
         setIsLoading(false)
       })

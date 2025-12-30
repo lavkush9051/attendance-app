@@ -135,7 +135,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
         shift: formData.shift,
         
       })
-      console.log("Regularization request submitted successfully", formData.clockIn, formData.clockOut, formData.reason, formData.type, formData.shift)
+      //console.log("Regularization request submitted successfully", formData.clockIn, formData.clockOut, formData.reason, formData.type, formData.shift)
       setSubmitStatus("success")
       setTimeout(() => {
         onClose()

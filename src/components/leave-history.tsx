@@ -64,7 +64,7 @@ export function LeaveHistory() {
         remarks: item.remarks,
       }))
       records.sort((a, b) => new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime());
-      console.log("Leave requests:", records)
+      //console.log("Leave requests:", records)
       setLeaveRecords(records)
     }).catch((error) => {
       console.error("Failed to fetch leave requests for employee 10001:", error);

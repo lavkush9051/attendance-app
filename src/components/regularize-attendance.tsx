@@ -39,7 +39,7 @@ export function RegularizeAttendance() {
 
   const [regularizeRecords, setRegularizeRecords] = useState<RegularizeRecord[]>([])
   const emp = authApi.getUser();
-  console.log("Employee data:for regularize", emp)
+  //console.log("Employee data:for regularize", emp)
 
   useEffect(() => {
     attendanceApi.getRegularizationRequests(emp.emp_id)
@@ -65,7 +65,7 @@ export function RegularizeAttendance() {
         rejectionReason: item.rejection_reason ?? "",
         shift: item.shift ?? ""
       }))
-      console.log("Fetched regularization records:", records)
+      //console.log("Fetched regularization records:", records)
       setRegularizeRecords(records)
     })
     .catch(error => { 

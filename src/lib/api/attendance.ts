@@ -186,9 +186,9 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
       formData.append("clock_in", data.requested_clock_in)
       formData.append("clock_out", data.requested_clock_out || "")
       formData.append("shift", data.shift || "")
-      console.log("Posting regularization request:", (formData.get("emp_id"), formData.get("date"), formData.get("reason"), formData.get("clock_in"), formData.get("clock_out")));
+      //console.log("Posting regularization request:", (formData.get("emp_id"), formData.get("date"), formData.get("reason"), formData.get("clock_in"), formData.get("clock_out")));
       const response = await apiClient.postFormData("/api/attendance-regularization", formData)
-      console.log("Regularization request submitted:", response.data)
+      //console.log("Regularization request submitted:", response.data)
       return response.data
     } catch (error) {
       console.error("Failed to post regularize attendance:", error)
@@ -211,7 +211,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
         queryParams.admin = "true"
       }
       const response = await apiClient.get<Partial<AttendanceRequest>[]>(`/api/regularization-requests/${empId}`, queryParams)
-      console.log("Leave requests response:", response)
+      //console.log("Leave requests response:", response)
       let data: any[] = []
       if (Array.isArray(response)) {
         data = response
@@ -251,7 +251,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
 
 
   async clockIn(empId: string | number, faceImage: Blob, shift: string) {
-    console.log(`[GEO_DEBUG] clockIn called with empId="${empId}" (type: ${typeof empId})`);
+    //console.log(`[GEO_DEBUG] clockIn called with empId="${empId}" (type: ${typeof empId})`);
     const date = new Date();
     const formattedDate = date.toLocaleDateString("en-IN", {
       day: "2-digit",
@@ -274,7 +274,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
       // --- 1. Get User Geolocation for all employees ---
       console.log(`[GEO_DEBUG] empId=${empId}, type=${typeof empId}, navigator.geolocation=${!!navigator.geolocation}`);
       if (navigator.geolocation) {
-        console.log(`[GEO_DEBUG] Requesting geolocation for emp ${empId}...`);
+        //console.log(`[GEO_DEBUG] Requesting geolocation for emp ${empId}...`);
         try {
           // Create a promise to await the result of the asynchronous geolocation call.
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
@@ -291,7 +291,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
           //latitude = 19.1158577.toFixed(7);
           //longitude = 72.8934000.toFixed(7);
           const accuracy = position.coords.accuracy;
-          console.log(`[GEO_DEBUG] Location captured: lat=${latitude}, lon=${longitude}, accuracy=${accuracy}m`);
+          //console.log(`[GEO_DEBUG] Location captured: lat=${latitude}, lon=${longitude}, accuracy=${accuracy}m`);
           
           if (accuracy > 30) {
             alert(`Location accuracy is low (${Math.round(accuracy)}m). Please move closer to a window or retry for better accuracy.`);
@@ -322,7 +322,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
             reason = geoError.message;
           }
 
-          console.warn("Geolocation error:", reason, geoError);
+          //console.warn("Geolocation error:", reason, geoError);
           // Return a specific error if location fails, as it's required by the backend.
           return {
             success: false,
@@ -336,14 +336,14 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
       }
 
       // IMPORTANT: backend expects keys "file" and "face_user_emp_id"
-      console.log("[GEO_DEBUG] Before FormData - latitude:", latitude, "longitude:", longitude);
+      //console.log("[GEO_DEBUG] Before FormData - latitude:", latitude, "longitude:", longitude);
       const formData = new FormData()
       formData.append("file", faceImage, "face-capture.jpg")
       formData.append("face_user_emp_id", String(empId))
       formData.append("shift", shift)
       formData.append("lat", latitude || "0");
       formData.append("lon", longitude || "0");
-      console.log("[GEO_DEBUG] FormData values - lat:", formData.get("lat"), "lon:", formData.get("lon"));
+      //console.log("[GEO_DEBUG] FormData values - lat:", formData.get("lat"), "lon:", formData.get("lon"));
       // The backend doesn’t accept timestamp/lat/long yet; keep them commented for later use:
       // formData.append("timestamp", new Date().toISOString())
       // if (latitude && longitude) { formData.append("latitude", latitude); formData.append("longitude", longitude) }

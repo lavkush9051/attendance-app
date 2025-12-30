@@ -44,11 +44,11 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Username</label>
+              <label className="block text-sm text-gray-600 mb-1">Ueser Id</label>
               <Input
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
+                placeholder="Enter user id"
                 required
               />
             </div>

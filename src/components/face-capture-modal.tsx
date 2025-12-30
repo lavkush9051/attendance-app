@@ -26,7 +26,7 @@ export function FaceCaptureModal({ isOpen, onClose, onClockInSuccess }: FaceCapt
   if(shift==="General"){
     shift = "GEN";
   }
-  console.log("Using shift:", shift);
+  //console.log("Using shift:", shift);
 
   const startCamera = useCallback(async () => {
     try {

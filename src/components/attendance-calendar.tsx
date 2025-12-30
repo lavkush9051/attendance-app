@@ -65,8 +65,8 @@ export function AttendanceCalendar({ onDateClick, onAttendanceLoad }: Attendance
             leaveApi.getEmployeeLeaveRequests(String(userId), { status: "approved", start_date: getDateStr(start), end_date: getDateStr(end) })
           ])
 
-          console.log("Attendance data:", attResp)
-          console.log("Leave data (approved):", leaveResp)
+          //console.log("Attendance data:", attResp)
+          //console.log("Leave data (approved):", leaveResp)
           const byDay: Record<number, DayAttendance> = {}
 
           // Map attendance to day of month
