@@ -46,7 +46,7 @@ class ApiClient {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new ApiError(data.message || data.error || "Request failed", response.status, data)
+        throw new ApiError(data.detail || data.message || data.error || "Request failed", response.status, data)
       }
 
       return {
@@ -132,7 +132,7 @@ class ApiClient {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new ApiError(data.message || data.error || "Request failed", response.status, data)
+        throw new ApiError(data.detail || data.message || data.error || "Request failed", response.status, data)
       }
 
       return {

@@ -1,9 +1,12 @@
+import { error } from "console"
 import { apiClient } from "../api-client"
 
 // Types
 export interface LoginRequest {
   username: string
   password: string
+  captcha_id: string
+  captcha_answer: string
   remember_me?: boolean
 }
 
@@ -41,47 +44,40 @@ export const authApi = {
   credentials: {
     username: "Prakash Ingle",
     password: "test@123",
+    captcha_id: "string",
+    captcha_answer: "string",
     remember_me: true
   },
   async login(credentials: LoginRequest) {
     try {
       const response = await apiClient.post<LoginResponse>("/login", credentials)
-      // const manual_user = {
-        
-      //     "id" : 10001,
-      //     "emp_id" : 10001,
-      //     "emp_name" : "Lavkush Singh",
-      //     "emp_department" : "Management Services",
-      //     "emp_designation" : "TECHICIAN",
-      //     "emp_gender" : "M",
-      //     "emp_address" : "A-201, Shree Ganesh Heights, SV Road, Andheri West, Mumbai – 400058",
-      //     "emp_joining_date" : "2022-02-14",
-      //     "emp_email" : "employee1@company.com",
-      //     "emp_contact" : "9821554321",
-      //     "emp_marital_status" : "Single",
-      //     "emp_nationality" : "Indian",
-      //     "emp_pan_no" : "QWERP1234A",
-      //     "emp_weekoff" : "Monday",
-      //     "emp_l1" : 12199,
-      //     "emp_l2" : 11326
-        
-      // }
-      //console.log("Login response:", response)
-      // if (response.data && response.data.user == null) {
-      //   response.data.user = manual_user;
-      // }
+
       // Store token in localStorage (you might want to use a more secure method)
       if (typeof window !== "undefined" && response.data?.access_token) {
         localStorage.setItem("auth_token", response.data.access_token)
         localStorage.setItem("user_data", JSON.stringify(response.data.user))
-
-
       }
+      console.log("Login response:", response)
 
       return response
-    } catch (error) {
-      console.error("Login failed:", error)
-      throw error
+
+    } catch (err: any) {
+      // Extract helpful message from API response
+      // ApiError throws with message as first parameter
+      let msg = "Login failed"
+      
+      if (err instanceof Error && err.message) {
+        msg = err.message
+      } else if (err?.response?.data?.detail) {
+        msg = err.response.data.detail
+      } else if (err?.response?.data?.message) {
+        msg = err.response.data.message
+      } else if (err?.response?.data?.error) {
+        msg = err.response.data.error
+      }
+      
+      console.error("Login failed:", msg, err)
+      throw new Error(msg)
     }
   },
 
