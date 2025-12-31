@@ -1,6 +1,7 @@
 import { start } from "repl"
 import { apiClient } from "../api-client"
 import { authApi } from "./auth"
+import type { ApiResponse } from "@/lib/api-config"
 
 // Types
 // Define the response type for attendance
@@ -175,7 +176,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
     }
   },
 
-  async postRegularizeAttendance(data: AttendanceRequest) {
+  async postRegularizeAttendance(data: AttendanceRequest): Promise<ApiResponse<any>> {
     try {
       const formData = new FormData()
       const emp = authApi.getUser()
@@ -189,7 +190,8 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
       console.log("Posting regularization request:", (formData.get("emp_id"), formData.get("date"), formData.get("reason"), formData.get("clock_in"), formData.get("clock_out")));
       const response = await apiClient.postFormData("/api/attendance-regularization", formData)
       console.log("Regularization request submitted:", response.data)
-      return response.data
+      // return response.data
+      return response
     } catch (error) {
       console.error("Failed to post regularize attendance:", error)
       throw error

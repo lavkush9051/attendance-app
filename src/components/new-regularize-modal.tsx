@@ -19,11 +19,12 @@ interface NewRegularizeModalProps {
   isOpen: boolean
   onClose: () => void
 }
-  
+
 export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps) {
 
-  
-  
+
+
+  const [apiError, setApiError] = useState<string>("")
 
   const [formData, setFormData] = useState({
     date: "",
@@ -32,7 +33,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
     clockOut: "",
     reason: "",
     shift: "",
-   
+
   })
   // Load L1 & L2 names from localStorage
   const user = JSON.parse(localStorage.getItem("user_data") || "{}");
@@ -42,6 +43,9 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
+
+
+
 
   const regularizeTypes = [
     { value: "missed-clock-in", label: "Missed Clock In" },
@@ -90,7 +94,20 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.date) newErrors.date = "Date is required"
+    if (!formData.date) { newErrors.date = "Date is required" 
+
+    } else {
+    const selectedDate = new Date(formData.date)
+    const today = new Date()
+    
+    // normalize today (remove time)
+    today.setHours(0, 0, 0, 0)
+
+    if (selectedDate > today) {
+      newErrors.date = "Future date is not allowed for regularization"
+    }
+  }
+
     if (!formData.type) newErrors.type = "Regularization type is required"
     if (!formData.reason.trim()) newErrors.reason = "Reason is required"
     if (!formData.shift) newErrors.shift = "Shift type is required"
@@ -116,7 +133,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
     setSubmitStatus("idle")
 
     try {
-      await attendanceApi.postRegularizeAttendance({
+      const res = await attendanceApi.postRegularizeAttendance({
         id: "", // leave empty if your backend auto-generates
         emp_id: "", // will be set inside API util from authApi.getUser
         employee_name: "", // backend or util may set this, leave blank if not in form
@@ -133,8 +150,13 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
         approved_date: "",
         rejection_reason: "",
         shift: formData.shift,
-        
+
       })
+      if (!res.success) {
+        setApiError(res.message || "Request failed")
+        setSubmitStatus("error")
+        return
+      }
       console.log("Regularization request submitted successfully", formData.clockIn, formData.clockOut, formData.reason, formData.type, formData.shift)
       setSubmitStatus("success")
       setTimeout(() => {
@@ -150,7 +172,14 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
         setSubmitStatus("idle")
       }, 2000)
     }
-    catch (error) {
+    catch (error: any) {
+      console.error("Regularization error:", error)
+
+      setApiError(
+        error?.message ||
+        error?.response?.message ||
+        "Failed to submit regularization request"
+      )
       setSubmitStatus("error")
     } finally {
       setIsSubmitting(false)
@@ -186,7 +215,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
             <Alert className="mb-4 border-red-200 bg-red-50">
               <AlertCircle className="h-4 w-4 text-red-600" />
               <AlertDescription className="text-red-800">
-                Failed to submit regularization request. Please try again.
+                {apiError}
               </AlertDescription>
             </Alert>
           )}
@@ -198,6 +227,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
                 id="date"
                 type="date"
                 value={formData.date}
+                // max={today}
                 onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
                 className={errors.date ? "border-red-500" : ""}
               />
@@ -225,15 +255,15 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
                 {errors.type && <p className="text-sm text-red-500 mt-1">{errors.type}</p>}
               </div>
               <div>
-                  <Label>L1-Immediate RO</Label>
-                  <Input
-                    type="text"
-                    value={user?.emp_l1_name || ""}
-                    readOnly
-                    className="bg-gray-100 cursor-not-allowed text-[11px]"
-                  />
-                </div>
-    
+                <Label>L1-Immediate RO</Label>
+                <Input
+                  type="text"
+                  value={user?.emp_l1_name || ""}
+                  readOnly
+                  className="bg-gray-100 cursor-not-allowed text-[11px]"
+                />
+              </div>
+
               <div>
                 <Label htmlFor="shift">Shift Type *</Label>
                 <Select

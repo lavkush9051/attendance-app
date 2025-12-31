@@ -56,16 +56,29 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
     attachment: null as File | null,
     applied_date: "",
     immediateReportingOfficer: "",
-  
+
+
   })
   // Load L1 & L2 names from localStorage
   const user = JSON.parse(localStorage.getItem("user_data") || "{}");
-
+  // const userWeekOff = (user?.emp_weekoff || "").toLowerCase()
+  // .split(",")
+  // .map((day: string) => day.trim())
+  // .filter(Boolean); // added this
+  const rawWeekOff = user?.emp_weekoff ??"";
+  const userWeekOff:string[] = rawWeekOff
+  .toString()
+  .toLowerCase()
+  .split(",")
+  .map((day: string) => day.trim())
+  .filter(Boolean);
+  console.log("EMP WEEK OFF:", userWeekOff)
   const l1Name = user.emp_l1_name;
   const l2Name = user.emp_l2_name;
 
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [apiErrorMessage, setApiErrorMessage] = useState<string>("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
 
@@ -77,6 +90,37 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
     "Compensatory Off",
     "Optional Holiday",
   ]
+
+  const getDayName = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return date.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase()
+  }
+
+  const hasWeekOffInRange = (startDate: string, endDate: string) => {
+    if (!userWeekOff.length) return false
+
+    const current = new Date(startDate)
+    const end = new Date(endDate)
+
+    current.setHours(0, 0, 0, 0)
+    end.setHours(0, 0, 0, 0)
+
+    while (current <= end) {
+      const dayName = current
+        .toLocaleDateString("en-US", { weekday: "long" })
+        .toLowerCase()
+
+      if (userWeekOff.includes(dayName)) {
+        return true // ❌ week-off found
+      }
+
+      current.setDate(current.getDate() + 1)
+    }
+
+    return false
+  }
+
+
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -90,11 +134,21 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
     if (formData.startDate && formData.endDate) {
       const start = new Date(formData.startDate)
       const end = new Date(formData.endDate)
+
       if (end < start) {
         newErrors.endDate = "End date must be after start date"
       }
+
+      // ❌ Week-off check for entire date range
+      if (hasWeekOffInRange(formData.startDate, formData.endDate)) {
+        newErrors.startDate = "Cannot apply leave on week-off day"
+        newErrors.endDate = "Cannot apply leave on week-off day"
+      }
     }
-    
+
+   
+
+
     // Backdated validation rule (updated)
     if (formData.startDate) {
 
@@ -111,15 +165,15 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
       const allowedPastDate = new Date(today);
       allowedPastDate.setDate(today.getDate() - 10);
 
-      if (start < today){
-          if (!isEligibleType) {
-              newErrors.startDate =
-              "Backdated leave is only allowed for Half Pay Leave or Commuted Leave or CL & EL"
-          }
-          else if (start < allowedPastDate) {
-              newErrors.startDate =
-              "Backdated leave can only be applied up to 10 days in the past."
-          }
+      if (start < today) {
+        if (!isEligibleType) {
+          newErrors.startDate =
+            "Backdated leave is only allowed for Half Pay Leave or Commuted Leave or CL & EL"
+        }
+        else if (start < allowedPastDate) {
+          newErrors.startDate =
+            "Backdated leave can only be applied up to 10 days in the past."
+        }
       }
     }
 
@@ -161,7 +215,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
       //   setIsSubmitting(false)
       //   return
       // }
-      await leaveApi.createLeaveRequest({
+      const res = await leaveApi.createLeaveRequest({
         // leave_type: formData.leaveType,
         leave_type:
           formData.leaveType.includes("Commuted")
@@ -176,6 +230,12 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
         applied_date: new Date().toISOString().split('T')[0],
         immediate_reporting_officer: formData.immediateReportingOfficer,
       })
+      // ✅ success only if API says success
+      if (!res?.success) {
+        setApiErrorMessage(res?.message || "Failed to submit leave application")
+        setSubmitStatus("error")
+        return
+      }
       // No need to wait if not required, just proceed
       setSubmitStatus("success")
       setTimeout(() => {
@@ -188,11 +248,20 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
           attachment: null,
           applied_date: "",
           immediateReportingOfficer: "",
+
           // nextReportingOfficer: "",
         })
         setSubmitStatus("idle")
       }, 2000)
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error submitting leave application:", error)
+      // ✅ extract backend error message
+      const message =
+        error?.response?.message ||
+        error?.message ||
+        "Leave request failed"
+
+      setApiErrorMessage(message)
       setSubmitStatus("error")
     } finally {
       setIsSubmitting(false)
@@ -230,7 +299,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
             <Alert className="mb-4 border-red-200 bg-red-50">
               <AlertCircle className="h-4 w-4 text-red-600" />
               <AlertDescription className="text-red-800">
-                Failed to submit leave application. Please try again.
+                {apiErrorMessage || "Failed to submit leave application"}
               </AlertDescription>
             </Alert>
           )}
@@ -262,6 +331,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
                 <Input
                   id="startDate"
                   type="date"
+                 
                   value={formData.startDate}
                   onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
                   className={errors.startDate ? "border-red-500" : ""}
@@ -274,6 +344,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
                 <Input
                   id="endDate"
                   type="date"
+                 
                   value={formData.endDate}
                   onChange={(e) => setFormData((prev) => ({ ...prev, endDate: e.target.value }))}
                   className={errors.endDate ? "border-red-500" : ""}
@@ -352,7 +423,7 @@ export function ApplyLeaveModal({ isOpen, onClose }: ApplyLeaveModalProps) {
               />
               {errors.reason && <p className="text-sm text-red-500 mt-1">{errors.reason}</p>}
             </div>
-             
+
             <div>
               <Label htmlFor="attachment">Attachment</Label>
               <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-gray-400 transition-colors">
