@@ -1,6 +1,7 @@
 import { start } from "repl"
 import { apiClient } from "../api-client"
 import { authApi } from "./auth"
+import type { ApiResponse } from "@/lib/api-config"
 
 // Types
 // Define the response type for attendance
@@ -175,7 +176,7 @@ async downloadAttendanceReport(emp_id: string, start: string, end: string): Prom
     }
   },
 
-  async postRegularizeAttendance(data: AttendanceRequest) {
+  async postRegularizeAttendance(data: AttendanceRequest): Promise<ApiResponse<any>> {
     try {
       const formData = new FormData()
       const emp = authApi.getUser()

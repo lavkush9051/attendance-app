@@ -45,9 +45,13 @@ class ApiClient {
 
       const data = await response.json()
 
+      // if (!response.ok) {
+      //   throw new ApiError(data.message || data.error || "Request failed", response.status, data)
+      // }
       if (!response.ok) {
         throw new ApiError(data.detail || data.message || data.error || "Request failed", response.status, data)
       }
+
 
       return {
         success: true,
@@ -82,7 +86,7 @@ class ApiClient {
 
   async getFile(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<Response>> {
     const url = params ? `${endpoint}?${new URLSearchParams(params)}` : endpoint
-    
+
     // This will call your private 'request' method.
     // Your 'request' method will see the non-JSON content type
     // and correctly return { success: true, data: Response }
@@ -110,10 +114,10 @@ class ApiClient {
   // Multipart form data (for file uploads)
   async postFormData<T>(endpoint: string, formData: FormData): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
-    
+
     // Get auth token from localStorage (client-side only)
     const authToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null
-    
+
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), this.timeout)
 
@@ -131,9 +135,13 @@ class ApiClient {
       clearTimeout(timeoutId)
       const data = await response.json()
 
+      // if (!response.ok) {
+      //   throw new ApiError(data.message || data.error || "Request failed", response.status, data)
+      // }
       if (!response.ok) {
         throw new ApiError(data.detail || data.message || data.error || "Request failed", response.status, data)
       }
+
 
       return {
         success: true,
