@@ -223,7 +223,7 @@ useEffect(() => {
 
      // const res = await fetch(`${apiBase}/api/register`, { method: "POST", body: fd })
     const token = localStorage.getItem("auth_token")
-console.log("Token being sent:", token) // This will help you debug if the token is present
+//console.log("Token being sent:", token) // This will help you debug if the token is present
 
 const res = await fetch(`${apiBase}/api/register`, {
   method: "POST",

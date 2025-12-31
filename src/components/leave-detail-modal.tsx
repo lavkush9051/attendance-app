@@ -54,7 +54,7 @@ export function LeaveDetailModal({ isOpen, onClose, leave, onCancelled }: LeaveD
   }
   const isRevokeVisible = () => {
       const status = leave.status?.toLowerCase()
-      return status !== "cancelled" && status !== "rejected" && isCancellable() && status === "pending"
+      return status !== "cancelled" && status !== "rejected" && isCancellable() && status === "pending" || status === "approved" || status === "l1 approved"
 
   }
 
@@ -71,8 +71,8 @@ export function LeaveDetailModal({ isOpen, onClose, leave, onCancelled }: LeaveD
       setIsCancelling(true)
       const emp = authApi.getUser()
 
-      console.log("Current logged in employee:", emp)
-      console.log("emp_id picked:", emp.emp_id)
+      //console.log("Current logged in employee:", emp)
+      //console.log("emp_id picked:", emp.emp_id)
 
       const payload = {
         leave_req_id: Number(leave.id),
@@ -80,10 +80,10 @@ export function LeaveDetailModal({ isOpen, onClose, leave, onCancelled }: LeaveD
         admin_id: Number(emp.emp_id),
         remarks: "Cancelled by user",
       } as any
-      console.log("Cancel leave payload:", payload)
+      //console.log("Cancel leave payload:", payload)
 
       const res = await leaveApi.actionLeaveRequest(payload)
-      console.log("API response for cancel:", res)
+      //console.log("API response for cancel:", res)
 
       const ok = res && res.success !== false && res.data && (res.data as any).status === "success"
       if (!ok) {

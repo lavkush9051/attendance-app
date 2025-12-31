@@ -17,7 +17,7 @@ export function StatsCards({ todayAttendance }: StatsCardsProps) {
   const today = new Date()
   const updatedInitialShifts = getUpdatedInitialShifts(today.toISOString().slice(0, 10))
   const { shift, shiftTime } = getShiftForWeekoff(emp?.emp_weekoff || emp?.emp_week_off || "General", updatedInitialShifts, today)
-  console.log("Today Shift:", shift)
+  //console.log("Today Shift:", shift)
   localStorage.setItem("user_shift", JSON.stringify({
     "shift": shift.split(' ')[0],  // Just first letter
     "shiftTime": shiftTime
@@ -49,7 +49,7 @@ export function StatsCards({ todayAttendance }: StatsCardsProps) {
 
     // Fetch attendance stats for this month
     attendanceApi.getAttendance(userId, getDateStr(start), getDateStr(end)).then(data => {
-      console.log("Fetched attendance data:", data)
+      //console.log("Fetched attendance data:", data)
       if (!data) {
         setStatsData({
           present: "-",

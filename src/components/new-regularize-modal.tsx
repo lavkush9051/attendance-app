@@ -152,12 +152,7 @@ export function NewRegularizeModal({ isOpen, onClose }: NewRegularizeModalProps)
         shift: formData.shift,
 
       })
-      if (!res.success) {
-        setApiError(res.message || "Request failed")
-        setSubmitStatus("error")
-        return
-      }
-      console.log("Regularization request submitted successfully", formData.clockIn, formData.clockOut, formData.reason, formData.type, formData.shift)
+      // console.log("Regularization request submitted successfully", formData.clockIn, formData.clockOut, formData.reason, formData.type, formData.shift)
       setSubmitStatus("success")
       setTimeout(() => {
         onClose()

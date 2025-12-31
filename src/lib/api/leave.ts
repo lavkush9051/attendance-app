@@ -221,13 +221,13 @@ export const leaveApi = {
       if (data.attachment) {
 
         formData.append("files", data.attachment)
-        console.log("attachment is added ",formData.get("emp_id"), formData.get("leave_type"), formData.get("leave_from_dt"), formData.get("leave_to_dt"), formData.get("leave_reason"));
+       // console.log("attachment is added ",formData.get("emp_id"), formData.get("leave_type"), formData.get("leave_from_dt"), formData.get("leave_to_dt"), formData.get("leave_reason"));
         //return await apiClient.postFormData<LeaveRequest>("/api/leave-request", formData)
       } else {
         //// Regular JSON request
         //const { attachment, ...jsonData } = data
         //return await apiClient.post<LeaveRequest>("/api/leave-request", jsonData)
-        console.log("No attachment ",formData.get("emp_id"), formData.get("leave_type"), formData.get("leave_from_dt"), formData.get("leave_to_dt"), formData.get("leave_reason"));
+      //  console.log("No attachment ",formData.get("emp_id"), formData.get("leave_type"), formData.get("leave_from_dt"), formData.get("leave_to_dt"), formData.get("leave_reason"));
         //return await apiClient.postFormData<LeaveRequest>("/api/leave-request", formData)
       }
       return await apiClient.postFormData<LeaveRequest>("/api/leave-request", formData)
@@ -243,7 +243,7 @@ export const leaveApi = {
    */
   async actionLeaveRequest(data: LeaveActionRequest) {
     try {
-      console.log("Action Leave Request Data:", data);
+      //console.log("Action Leave Request Data:", data);
       return await apiClient.put("/api/leave-request/action", data)
     } catch (error) {
       console.error("Failed to action leave request:", error)
@@ -287,7 +287,7 @@ async getLeaveBalance(empId: number | string): Promise<LeaveBalance> {
     // Backend snapshot endpoint
     const res = await apiClient.get("/api/leave-balance/snapshot", { emp_id: String(empId) })
     const payload: any = (res && typeof res === "object" && "data" in res) ? (res as any).data : res
-    console.log("Leave balance snapshot payload:", payload, "response:", res)
+    //console.log("Leave balance snapshot payload:", payload, "response:", res)
     // payload = { emp_id, types: [{type, accrued, held, committed, available}], totals: {...} }
 
     const init: LeaveBalance = {
@@ -307,7 +307,7 @@ async getLeaveBalance(empId: number | string): Promise<LeaveBalance> {
       ;(init as any)[`${key}_held`] = Number(row.held ?? 0)
       ;(init as any)[`${key}_committed`] = Number(row.committed ?? 0)
     }
-    console.log("Normalized leave balance:", init)
+    //console.log("Normalized leave balance:", init)
     return init
   } catch (error) {
     console.error("Failed to fetch leave balance:", error)
@@ -351,7 +351,7 @@ async getLeaveBalance(empId: number | string): Promise<LeaveBalance> {
     const params: any = {}
     if (actorEmpId != null) params.actor_emp_id = String(actorEmpId)
     const res = await apiClient.get(`/api/leave-request/${leaveReqId}/attachment/meta`, params)
-    console.log("Attachment meta response:", res)
+    //console.log("Attachment meta response:", res)
     const payload: any = (res && typeof res === "object" && "data" in res) ? (res as any).data : res
     const items = Array.isArray(payload?.items) ? payload.items : []
     // items: [{ id, original_name, mime_type, size_bytes, url }]

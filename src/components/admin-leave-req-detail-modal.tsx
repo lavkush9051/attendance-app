@@ -93,7 +93,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
     const loadApprovers = async () => {
       try {
         const res = await employeeApi.get_emps_by_designations()
-        console.log("Approvers fetched:", res)
+        //console.log("Approvers fetched:", res)
         const employees = res?.data || []
 
         const formatted = employees.map((emp: any) => ({
@@ -144,7 +144,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
 
 
   async function handleDownload(att: { id: number; url: string }) {
-    console.log("Downloading from URL:", att.url, "attr:", att)
+    //console.log("Downloading from URL:", att.url, "attr:", att)
     try {
       // att.url already looks like: /api/leave-request/39/attachment?actor_emp_id=10001
       await leaveApi.openAttachmentUrl(att.url)
@@ -159,7 +159,8 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
   // - Default: visible until 11:59 PM before start date
   // - Exception: if leave type is Medical Leave, allow actions even for past dates
   const canTakeAction = () => {
-    const isMedical = (leave.type || "").trim().toLowerCase() === "medical leave"
+    const LeaveTypes = ["medical leave", "sick leave", "casual leave", "earned leave", "half pay leave", "commuted leave"];
+    const isMedical = LeaveTypes.includes((leave.type || "").trim().toLowerCase())
 
     // hide if rejected or cancelled regardless of type
     if (leave.status === "rejected") return false
@@ -183,7 +184,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
   const isActionable = canTakeAction()
   // IMPORTANT: Build only the *new* remark for this action (do NOT prepend existing trail)
   leave.next_reporting_officer = selectedApprover;
-  console.log("Selected Approver ID:", selectedApprover);
+  //console.log("Selected Approver ID:", selectedApprover);
   const buildNewRemark = (action: "Approved" | "Rejected") => {
     //const actor = leave.status === "pending" ? "L1 Manager" : "L2 Manager"
     const actor = authApi.getUser().emp_id
@@ -403,7 +404,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
                     return;
                   }
                   const newRemark = buildNewRemark("Approved");
-                  console.log("Sending remarks to backend:", newRemark); // ✅ yaha log
+                  //console.log("Sending remarks to backend:", newRemark); // ✅ yaha log
                   onApprove?.(newRemark, selectedApprover);
                 }}>
                 Approve
@@ -416,7 +417,7 @@ export function AdminLeaveReqDetailModal({ isOpen, onClose, leave, onCancelLeave
               <Button variant="destructive" className="flex-1"
                 onClick={() => {
                   const newRemark = buildNewRemark("Rejected");
-                  console.log("Sending remarks to backend:", newRemark);
+                  //console.log("Sending remarks to backend:", newRemark);
                   onReject?.(newRemark, "");
                 }}>
                 Reject

@@ -119,7 +119,7 @@ export function ApplyLeave() {
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric" })
 
-  console.log("available.....", snapshot?.types.map(t => ({ type: t.type, available: t.available })))
+  //console.log("available.....", snapshot?.types.map(t => ({ type: t.type, available: t.available })))
 
   return (
     <div className="space-y-6">

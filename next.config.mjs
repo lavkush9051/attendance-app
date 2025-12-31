@@ -19,6 +19,7 @@ import withPWA from '@ducanh2912/next-pwa';
 /** @type {import('next').NextConfig} */
 const baseConfig = {
   // keep your existing settings:
+  output: 'standalone',
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
   images: { unoptimized: true },

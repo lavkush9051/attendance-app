@@ -66,7 +66,7 @@ export const authApi = {
       //     "emp_l2" : 11326
         
       // }
-      console.log("Login response:", response)
+      //console.log("Login response:", response)
       // if (response.data && response.data.user == null) {
       //   response.data.user = manual_user;
       // }
